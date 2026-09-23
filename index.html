@@ -1838,11 +1838,16 @@
 
   <script>
     const $ = id => document.getElementById(id);
+    /* A recipient opening a shared link: ?w=<id> (new) or #wish= / #wishurl= (old links) */
+    function sharedWishId() { return new URLSearchParams(location.search).get('w') || ''; }
+    function isSharedLinkUrl() { return !!sharedWishId() || /^#wish(url)?=/.test(location.hash); }
+    let viewingSharedWish = isSharedLinkUrl();
+    if (viewingSharedWish) document.addEventListener('DOMContentLoaded', () => { const a = document.getElementById('editorApp'); if (a) a.style.display = 'none'; });
     function showToast(msg) { const t = $('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
     window.addEventListener('error', e => {
       console.error('WishCraft runtime error:', e.error || e.message);
       const app = document.getElementById('editorApp');
-      if (app && !location.hash.startsWith('#wish=')) app.style.display = '';
+      if (app && !isSharedLinkUrl()) app.style.display = '';
     });
 
     /* ================= THEMES (16) ================= */
@@ -1950,26 +1955,73 @@
       });
     }
 
-    async function uploadImageForSharing(dataUrl, filename) {
-      const blob = await (await fetch(dataUrl)).blob();
-      if (blob.size > 1024 * 1024) throw new Error('Compressed photo is still too large.');
-      const res = await fetch('/api/upload-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'image/jpeg',
-          'X-Filename': encodeURIComponent(filename || 'wish-photo.jpg')
-        },
-        body: blob
-      });
-      let data = null; try { data = await res.json(); } catch (_) {}
-      if (!res.ok || !data?.url) throw new Error(data?.error || 'Could not upload photo for sharing.');
-      return data.url;
+    /* ---- direct browser -> Vercel Blob upload (no function size limit) ---- */
+    let _blobClient = null;
+    async function getBlobClient() {
+      if (!_blobClient) _blobClient = import('https://esm.sh/@vercel/blob@2.8.0/client');
+      return _blobClient;
+    }
+    function safeFileName(n, fallback) {
+      return String(n || fallback).replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80) || fallback;
+    }
+    function rand8() { return Math.random().toString(36).slice(2, 10); }
+
+    /* Uploads a File/Blob. Tries direct upload first; falls back to the small-file proxy. */
+    async function uploadMedia(fileOrBlob, kind, filename, contentType) {
+      const folder = kind === 'audio' ? 'audio' : 'images';
+      const name = safeFileName(filename, kind === 'audio' ? 'song.mp3' : 'photo.jpg');
+      try {
+        const { upload } = await getBlobClient();
+        const res = await upload(`wishcraft/${folder}/${rand8()}-${name}`, fileOrBlob, {
+          access: 'public',
+          handleUploadUrl: '/api/upload-token',
+          contentType: contentType || fileOrBlob.type || undefined,
+        });
+        if (res && res.url) return res.url;
+        throw new Error('No URL returned');
+      } catch (directErr) {
+        console.warn('Direct upload failed, trying fallback:', directErr);
+        if (fileOrBlob.size > 4 * 1024 * 1024) {
+          throw new Error(kind === 'audio'
+            ? 'Song upload failed. Check that the Blob store is connected and redeploy.'
+            : 'Photo upload failed. Check that the Blob store is connected and redeploy.');
+        }
+        const res = await fetch(kind === 'audio' ? '/api/upload-audio' : '/api/upload-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': contentType || fileOrBlob.type || (kind === 'audio' ? 'audio/mpeg' : 'image/jpeg'),
+            'X-Filename': encodeURIComponent(name)
+          },
+          body: fileOrBlob
+        });
+        let data = null; try { data = await res.json(); } catch (_) {}
+        if (!res.ok || !data?.url) throw new Error(data?.error || 'Upload failed.');
+        return data.url;
+      }
     }
 
-    async function preparePhotoForSharing(file, maxDim, quality, filename) {
-      const compressed = await compressImage(file, maxDim, quality);
-      const url = await uploadImageForSharing(compressed, filename);
-      return url;
+    /* Photos are resized/compressed in the browser, then stored in Blob storage. */
+    function compressToBlob(file, maxDim, quality) {
+      return new Promise((resolve, reject) => {
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let w = img.naturalWidth, h = img.naturalHeight;
+          const scale = Math.min(1, maxDim / Math.max(w, h));
+          w = Math.round(w * scale); h = Math.round(h * scale);
+          const c = document.createElement('canvas'); c.width = w; c.height = h;
+          c.getContext('2d').drawImage(img, 0, 0, w, h);
+          c.toBlob(b => b ? resolve(b) : reject(new Error('Could not process image.')), 'image/jpeg', quality);
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Invalid image.')); };
+        img.src = url;
+      });
+    }
+    async function uploadPhotoFile(file, maxDim, quality, fallbackName) {
+      const blob = await compressToBlob(file, maxDim, quality);
+      const base = (file.name || fallbackName).replace(/\.[^.]+$/, '') + '.jpg';
+      return uploadMedia(blob, 'image', base, 'image/jpeg');
     }
 
     /* main photo */
@@ -1980,7 +2032,7 @@
         $('wUploadHint').innerHTML = '⏳ Uploading photo to secure storage…';
         const localPreview = await compressImage(file, 500, 0.72);
         wish.mainPhoto = localPreview; updateMiniPreview();
-        const remoteUrl = await uploadImageForSharing(file, file.name || 'hero-photo.jpg');
+        const remoteUrl = await uploadPhotoFile(file, 1600, 0.85, 'hero-photo.jpg');
         wish.mainPhoto = remoteUrl;
         $('wUploadHint').innerHTML = '✅ Photo uploaded & shareable';
         $('wRemovePhoto').style.display = 'block';
@@ -1996,7 +2048,7 @@
     wUploadBox.ondragover = e => { e.preventDefault(); wUploadBox.classList.add('drag'); };
     wUploadBox.ondragleave = () => wUploadBox.classList.remove('drag');
     wUploadBox.ondrop = e => { e.preventDefault(); wUploadBox.classList.remove('drag'); setMainPhoto(e.dataTransfer.files[0]); };
-    $('wRemovePhoto').onclick = () => { wish.mainPhoto = null; wPhotoInput.value = ''; $('wUploadHint').innerHTML = '📷 Click or drag & drop the hero photo<br><span class="small">Stored in Vercel Blob for sharing</span>'; $('wRemovePhoto').style.display = 'none'; updateMiniPreview(); updateShareSizeWarning(); };
+    $('wRemovePhoto').onclick = () => { wish.mainPhoto = null; wPhotoInput.value = ''; $('wUploadHint').innerHTML = '📷 Click or drag & drop the hero photo<br><span class="small">Saved to cloud storage for sharing</span>'; $('wRemovePhoto').style.display = 'none'; updateMiniPreview(); updateShareSizeWarning(); };
 
     /* memory photos (up to 10) */
     const memUploadBox = $('memUploadBox'), memPhotoInput = $('memPhotoInput');
@@ -2028,11 +2080,14 @@
           const localPreview = await compressImage(f, 480, 0.68);
           const item = { url: localPreview, caption: '', uploading: true };
           wish.photos.push(item); renderMemGrid(); updateMiniPreview(); updateShareSizeWarning();
-          item.url = await uploadImageForSharing(f, f.name || 'memory-photo.jpg');
+          item.url = await uploadPhotoFile(f, 1400, 0.82, 'memory-photo.jpg');
           item.uploading = false;
           renderMemGrid(); updateMiniPreview(); updateShareSizeWarning();
         } catch (err) {
           showToast(err.message || 'Memory photo upload failed.');
+          const idx = wish.photos.findIndex(p => p.uploading);
+          if (idx > -1) wish.photos.splice(idx, 1);
+          renderMemGrid(); updateMiniPreview(); updateShareSizeWarning();
         }
       }
     }
@@ -2059,8 +2114,8 @@
         audioInput.value = '';
         return;
       }
-      if (f.size > 4 * 1024 * 1024) {
-        showToast('Please choose an audio file under 4MB');
+      if (f.size > 25 * 1024 * 1024) {
+        showToast('Please choose an audio file under 25MB');
         audioInput.value = '';
         return;
       }
@@ -2080,7 +2135,7 @@
         wish.audio.shareUrl = url;
         wish.audio.uploading = false;
         $('audioHint').textContent = '✓ Song uploaded & shareable';
-        $('audioSizeWarn').textContent = '✓ Song is stored online and will play for the recipient from the shared link. The audio file itself is NOT packed into the WhatsApp URL.';
+        $('audioSizeWarn').textContent = '✓ Song is stored online and will play for the recipient from the shared link. The link you share stays short.';
         updateShareSizeWarning();
       }).catch(err => {
         console.error('Audio upload failed:', err);
@@ -2088,7 +2143,7 @@
           wish.audio.uploading = false;
           wish.audio.shareUrl = '';
           $('audioHint').textContent = '⚠ Song preview only';
-          $('audioSizeWarn').textContent = '⚠ The song plays in your preview, but could not be uploaded for sharing. Deploy the /api/upload-audio endpoint and try again.';
+          $('audioSizeWarn').textContent = '⚠ The song plays in your preview, but could not be uploaded for sharing. Check that the Blob store is connected, redeploy and try again.';
           showToast(err.message || 'Song upload failed');
           updateShareSizeWarning();
         }
@@ -2163,28 +2218,25 @@
     let generatedWishUrl = '';
 
     async function uploadAudioForSharing(file) {
-      const maxBytes = 4 * 1024 * 1024;
-      if (file.size > maxBytes) {
-        throw new Error('Please choose a song under 4 MB so it can be uploaded by this Vercel Function.');
-      }
-      const res = await fetch('/api/upload-audio', {
-        method: 'POST',
-        headers: {
-          'Content-Type': file.type || 'application/octet-stream',
-          'X-Filename': encodeURIComponent(file.name),
-        },
-        body: file
-      });
-      let data = null;
-      try { data = await res.json(); } catch (_) {}
-      if (!res.ok || !data || !data.url) {
-        throw new Error(data?.error || 'Could not upload the song for sharing.');
-      }
-      return data.url;
+      if (file.size > 25 * 1024 * 1024) throw new Error('Please choose a song under 25 MB.');
+      return uploadMedia(file, 'audio', file.name || 'song.mp3', file.type || 'audio/mpeg');
     }
 
-    function localLinkFor(w) {
-      return `${location.origin}${location.pathname}#wish=${encodeWish(w)}`;
+    /* Save the wish to the backend; the shared link is only  /?w=<id> */
+    let lastSavedKey = '', lastSavedUrl = '';
+    async function saveWishToBackend(w) {
+      const key = JSON.stringify(w);
+      if (key === lastSavedKey && lastSavedUrl) return lastSavedUrl;
+      const res = await fetch('/api/wish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: key
+      });
+      let data = null; try { data = await res.json(); } catch (_) {}
+      if (!res.ok || !data?.id) throw new Error(data?.error || 'Could not save the wish. Please try again.');
+      lastSavedKey = key;
+      lastSavedUrl = `${location.origin}${location.pathname}?w=${encodeURIComponent(data.id)}`;
+      return lastSavedUrl;
     }
 
     function normalizeWish(data) {
@@ -2235,10 +2287,6 @@
       return copy;
     }
 
-    function getShareUrlCandidate(w) {
-      return localLinkFor(getShareableWish(w));
-    }
-
     function formatBytes(bytes) {
       if (bytes < 1024) return bytes + ' B';
       if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -2249,33 +2297,19 @@
       generatedWishUrl = '';
       const el = $('wShareSizeWarning');
       if (!el) return;
-      let url = '';
-      try { url = getShareUrlCandidate(wish); } catch (_) {
+      const pending = (wish.photos || []).some(p => p && p.uploading) || (wish.mainPhoto && String(wish.mainPhoto).startsWith('data:')) || (wish.audio && wish.audio.uploading);
+      if (pending) {
         el.className = 'share-size-warning'; el.style.display = 'block';
-        el.innerHTML = '<strong>Photo upload:</strong> waiting for your photos to finish uploading to secure storage.';
+        el.innerHTML = '<strong>Uploading:</strong> photos / song are being saved to cloud storage. You can create the link when this finishes.';
         return;
       }
-      const chars = url.length;
       const photoCount = (wish.mainPhoto ? 1 : 0) + (wish.photos || []).length;
       const hasSong = !!(wish.audio && wish.audio.shareUrl);
-      const uploadingSong = !!(wish.audio && wish.audio.uploading);
-      const encodedKB = new Blob([url]).size / 1024;
-
-      if (chars > 18000) {
-        el.className = 'share-size-warning danger';
-        el.style.display = 'block';
-        el.innerHTML = `<strong>Link is very large:</strong> ${formatBytes(encodedKB * 1024)} (${chars.toLocaleString()} characters). Remove a photo or use fewer/lower-resolution photos before sharing.`;
+      if (photoCount || hasSong) {
+        el.className = 'share-size-warning'; el.style.display = 'block';
+        el.innerHTML = `✓ ${photoCount} photo${photoCount === 1 ? '' : 's'}${hasSong ? ' + song' : ''} saved online. Your share link will be short.`;
         return;
       }
-
-      if (hasSong || uploadingSong || chars > 9000) {
-        el.className = 'share-size-warning';
-        el.style.display = 'block';
-        const musicNote = hasSong ? ' Song is stored separately and only its short media URL is included.' : uploadingSong ? ' Song upload is still in progress; sharing will wait until it finishes.' : '';
-        el.innerHTML = `<strong>Share size:</strong> about ${formatBytes(encodedKB * 1024)} (${chars.toLocaleString()} characters)${photoCount ? ` from ${photoCount} photo${photoCount === 1 ? '' : 's'}.` : '.'}${musicNote}`;
-        return;
-      }
-
       el.style.display = 'none';
     }
 
@@ -2285,28 +2319,27 @@
         $('wName').focus();
         return null;
       }
-
       if (wish.audio && wish.audio.uploading) {
         showToast('Please wait for the song upload to finish.');
         return null;
       }
       if (wish.audio && wish.audio.data && !wish.audio.shareUrl) {
-        showToast('The song is only available in local preview. Upload it again after deploying /api/upload-audio.');
+        showToast('The song could not be uploaded. Remove it or try uploading again.');
+        return null;
       }
-
       let shareWish;
       try { shareWish = getShareableWish(wish); } catch (e) {
         showToast(e.message || 'Please wait for photo uploads to finish.');
         return null;
       }
-      const url = localLinkFor(shareWish);
-      generatedWishUrl = url;
-
-      if (url.length > 18000) {
-        showToast('The share link is too large. Remove a photo or use fewer/lower-resolution photos.');
+      try {
+        const url = await saveWishToBackend(shareWish);
+        generatedWishUrl = url;
+        return url;
+      } catch (e) {
+        showToast(e.message || 'Could not save the wish.');
         return null;
       }
-      return url;
     }
 
     async function getShareUrl() {
@@ -2565,17 +2598,17 @@
 
       $('createOwnBtn').onclick = () => { closeExperience(); document.querySelector('.mode-tab[data-mode="wish"]').click(); window.scrollTo({ top: 0 }); };
       $('finalWA').onclick = async () => {
-        const url = location.hash ? location.href : await getShareUrl();
+        const url = viewingSharedWish ? location.href : await getShareUrl();
         if (!url) return;
         window.open(`https://wa.me/?text=${encodeURIComponent('A special birthday surprise was created for you.\n\nOpen your birthday wish:\n' + url + '\n\nTurn Wishes Into Memories — WishCraft')}`, '_blank', 'noopener,noreferrer');
       };
       $('finalCopy').onclick = async () => {
-        const url = location.hash ? location.href : await getShareUrl();
+        const url = viewingSharedWish ? location.href : await getShareUrl();
         if (!url) return;
         try { await navigator.clipboard.writeText(url); showToast('Link copied.'); } catch (e) { }
       };
       $('finalShare').onclick = async () => {
-        const url = location.hash ? location.href : await getShareUrl();
+        const url = viewingSharedWish ? location.href : await getShareUrl();
         if (!url) return;
         if (navigator.share) {
           try { await navigator.share({ title: 'Happy Birthday!', url }); } catch (e) { }
@@ -2703,8 +2736,19 @@
       const hash = location.hash;
       const local = hash.match(/^#wish=([^&]+)/);
       const remote = hash.match(/^#wishurl=(.+)$/);
+      const wishId = sharedWishId();
 
       try {
+        if (wishId) {
+          const res = await fetch('/api/wish?id=' + encodeURIComponent(wishId), { cache: 'no-store' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = normalizeWish(await res.json());
+          if (!data.name) throw new Error('Invalid wish data');
+          $('editorApp').style.display = 'none';
+          startExperience(data);
+          return;
+        }
+
         if (local) {
           const data = normalizeWish(decodeWish(local[1]));
           if (data && data.name) {
@@ -2729,6 +2773,7 @@
         }
       } catch (err) {
         console.error('Could not load shared wish:', err);
+        viewingSharedWish = false;
         $('editorApp').style.display = '';
         showToast('This birthday wish could not be loaded.');
       }

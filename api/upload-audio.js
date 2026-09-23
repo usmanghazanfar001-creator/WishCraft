@@ -1,4 +1,5 @@
 import { put } from '@vercel/blob';
+import { randomUUID } from 'node:crypto';
 
 export const config = {
   api: {
@@ -6,7 +7,7 @@ export const config = {
   },
 };
 
-const MAX_BYTES = 4 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024; // fallback proxy only; large files use direct upload (upload-token.js)
 const ALLOWED_TYPES = new Set([
   'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/wave',
   'audio/mp4', 'audio/x-m4a', 'audio/ogg', 'audio/aac', 'audio/flac',
@@ -49,7 +50,7 @@ export default async function handler(req, res) {
 
     const filename = safeName(decodeURIComponent(req.headers['x-filename'] || 'song'));
     const ext = filename.includes('.') ? '' : '.mp3';
-    const pathname = `wishcraft/audio/${crypto.randomUUID()}-${filename}${ext}`;
+    const pathname = `wishcraft/audio/${randomUUID()}-${filename}${ext}`;
 
     const blob = await put(pathname, Buffer.concat(chunks), {
       access: 'public',
