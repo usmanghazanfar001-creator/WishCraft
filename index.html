@@ -1101,7 +1101,32 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
+      border-radius: inherit;
+      display: block;
     }
+
+    /* Premium photo frame styles */
+    .hero-photo { position: relative; }
+    .hero-photo.frame-none { box-shadow: 0 20px 50px rgba(0,0,0,.4); }
+    .hero-photo.frame-gold { box-shadow: 0 0 0 5px #d4af37, 0 0 0 9px rgba(212,175,55,.18), 0 20px 50px rgba(0,0,0,.45); }
+    .hero-photo.frame-silver { box-shadow: 0 0 0 5px #dfe7ef, 0 0 0 9px rgba(255,255,255,.12), 0 20px 50px rgba(0,0,0,.45); }
+    .hero-photo.frame-rose { box-shadow: 0 0 0 5px #e0648a, 0 0 0 10px rgba(224,100,138,.18), 0 20px 50px rgba(0,0,0,.45); }
+    .hero-photo.frame-neon { box-shadow: 0 0 0 3px #67e8f9, 0 0 18px #67e8f9, 0 0 38px rgba(168,85,247,.7), 0 20px 50px rgba(0,0,0,.45); }
+    .hero-photo.frame-glass { border: 2px solid rgba(255,255,255,.72); box-shadow: inset 0 0 0 3px rgba(255,255,255,.12), 0 0 0 7px rgba(255,255,255,.08), 0 20px 50px rgba(0,0,0,.45); backdrop-filter: blur(8px); }
+    .hero-photo.frame-film { border: 10px solid #171717; box-shadow: 0 0 0 2px #555, 0 20px 50px rgba(0,0,0,.55); }
+    .hero-photo.frame-vintage { border: 7px solid #8b6b3f; box-shadow: 0 0 0 3px #d7bd8a, 0 0 0 7px #4a321d, 0 20px 50px rgba(0,0,0,.5); }
+    .hero-photo.frame-diamond { box-shadow: 0 0 0 4px #fff, 0 0 0 7px #9da8b6, 0 0 18px rgba(255,255,255,.65), 0 20px 50px rgba(0,0,0,.45); }
+
+    .frame-swatch { position:relative; width:100%; height:46px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:#101522; overflow:hidden; }
+    .frame-swatch::before { content:''; width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#555,#222); }
+    .frame-swatch.gold::after { content:''; position:absolute; inset:7px 24%; border:3px solid #d4af37; border-radius:50%; }
+    .frame-swatch.silver::after { content:''; position:absolute; inset:7px 24%; border:3px solid #dfe7ef; border-radius:50%; }
+    .frame-swatch.rose::after { content:''; position:absolute; inset:7px 24%; border:3px solid #e0648a; border-radius:50%; }
+    .frame-swatch.neon::after { content:''; position:absolute; inset:7px 24%; border:2px solid #67e8f9; border-radius:50%; box-shadow:0 0 10px #67e8f9; }
+    .frame-swatch.glass::after { content:''; position:absolute; inset:5px 21%; border:2px solid rgba(255,255,255,.75); border-radius:50%; }
+    .frame-swatch.film::after { content:''; position:absolute; inset:4px 20%; border:5px solid #171717; border-radius:50%; }
+    .frame-swatch.vintage::after { content:''; position:absolute; inset:5px 21%; border:3px solid #d7bd8a; border-radius:50%; box-shadow:0 0 0 2px #4a321d; }
+    .frame-swatch.diamond::after { content:''; position:absolute; inset:6px 23%; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 2px #9da8b6; }
 
     .exp-msg {
       font-size: clamp(1rem, 4vw, 1.25rem);
@@ -1315,13 +1340,15 @@
           </div>
           <button class="btn btn-outline" id="wRemovePhoto" style="display:none;margin-top:10px;width:100%;">Remove
             photo</button>
-          <label>Photo frame</label>
+          <label>Photo shape</label>
           <div class="chip-row" id="wShapeChips">
             <div class="chip active" data-v="circle">Circle</div>
             <div class="chip" data-v="rounded">Rounded</div>
-            <div class="chip" data-v="polaroid">Polaroid</div>
-            <div class="chip" data-v="frame">Golden Frame</div>
+            <div class="chip" data-v="polaroid">Square</div>
+            <div class="chip" data-v="frame">Soft Frame</div>
           </div>
+          <label style="margin-top:12px;">Frame style</label>
+          <div class="tpl-grid" id="wFrameGrid"></div>
         </div>
 
         <div class="card">
@@ -1601,9 +1628,14 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    function showToast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+    function showToast(msg) { const t = $('toast'); if (!t) return; t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2400); }
+    window.addEventListener('error', e => {
+      console.error('WishCraft runtime error:', e.error || e.message);
+      const app = document.getElementById('editorApp');
+      if (app && !location.hash.startsWith('#wish=')) app.style.display = '';
+    });
 
-    /* ================= THEMES (8) ================= */
+    /* ================= THEMES (16) ================= */
     const themes = {
       'royal-gold': { name: 'Royal Gold', bg: 'linear-gradient(160deg,#1a1400,#3a2b00 60%,#1a1400)', text: '#f4e4a6', accent: '#d4af37', font: 'Georgia, serif', particleTone: '#f4d97c' },
       'midnight-luxury': { name: 'Midnight Luxury', bg: 'linear-gradient(160deg,#000000,#141428 60%,#000000)', text: '#f0d98c', accent: '#c9a227', font: 'Georgia, serif', particleTone: '#f0d98c' },
@@ -1612,18 +1644,40 @@
       'golden-memories': { name: 'Golden Memories', bg: 'linear-gradient(160deg,#3a2a0f,#8a6a1f 60%,#3a2a0f)', text: '#fff3d6', accent: '#e8c465', font: 'Georgia, serif', particleTone: '#e8c465' },
       'pastel-birthday': { name: 'Pastel Birthday', bg: 'linear-gradient(160deg,#ffe8f0,#e0c3fc)', text: '#4a2b4d', accent: '#c88fd6', font: "'Segoe UI',sans-serif", particleTone: '#c88fd6' },
       'black-gold': { name: 'Black & Gold', bg: 'linear-gradient(160deg,#000000,#1a1a1a 60%,#000000)', text: '#e8c465', accent: '#d4af37', font: 'Georgia, serif', particleTone: '#f4d97c' },
-      'dreamy-celebration': { name: 'Dreamy Celebration', bg: 'linear-gradient(160deg,#1b1035,#3d2a6b 60%,#1b1035)', text: '#e6dcff', accent: '#b39ddb', font: 'Georgia, serif', particleTone: '#b39ddb' }
+      'dreamy-celebration': { name: 'Dreamy Celebration', bg: 'linear-gradient(160deg,#1b1035,#3d2a6b 60%,#1b1035)', text: '#e6dcff', accent: '#b39ddb', font: 'Georgia, serif', particleTone: '#b39ddb' },
+      'sapphire-night': { name: 'Sapphire Night', bg: 'radial-gradient(circle at 30% 20%,#163b73,#071225 55%,#020611)', text: '#dcecff', accent: '#5aa9ff', font: 'Georgia, serif', particleTone: '#80c7ff' },
+      'emerald-garden': { name: 'Emerald Garden', bg: 'linear-gradient(145deg,#06281f,#0b5b45 55%,#02150f)', text: '#d9ffe9', accent: '#5ee0a1', font: "'Segoe UI',sans-serif", particleTone: '#78efb3' },
+      'lavender-dream': { name: 'Lavender Dream', bg: 'radial-gradient(circle at 20% 20%,#7353a8,#24153f 60%,#120b21)', text: '#f1e7ff', accent: '#c5a2ff', font: 'Georgia, serif', particleTone: '#d7baff' },
+      'sunset-glow': { name: 'Sunset Glow', bg: 'linear-gradient(150deg,#4d1730,#b34b32 48%,#f0a84b)', text: '#fff4df', accent: '#ffd18a', font: "'Segoe UI',sans-serif", particleTone: '#ffd18a' },
+      'ocean-breeze': { name: 'Ocean Breeze', bg: 'linear-gradient(150deg,#063b52,#087e8b 55%,#74d6c7)', text: '#efffff', accent: '#9ff4e7', font: "'Segoe UI',sans-serif", particleTone: '#b8fff4' },
+      'cherry-blossom': { name: 'Cherry Blossom', bg: 'linear-gradient(160deg,#3a1228,#8c315a 55%,#f3a8c1)', text: '#fff0f6', accent: '#ffb5d0', font: 'Georgia, serif', particleTone: '#ffc7da' },
+      'royal-purple': { name: 'Royal Purple', bg: 'linear-gradient(145deg,#160b32,#4b1f8f 58%,#8b5cf6)', text: '#f3eaff', accent: '#d8b4fe', font: 'Georgia, serif', particleTone: '#e2c8ff' },
+      'crimson-velvet': { name: 'Crimson Velvet', bg: 'linear-gradient(150deg,#21050b,#7d1625 55%,#c23a4b)', text: '#ffe9ec', accent: '#ff8d9b', font: 'Georgia, serif', particleTone: '#ffabb5' }
     };
 
+    const frameStyles = {
+      'none': { name: 'Minimal', swatch: 'none' },
+      'gold': { name: 'Royal Gold', swatch: 'gold' },
+      'silver': { name: 'Silver', swatch: 'silver' },
+      'rose': { name: 'Rose', swatch: 'rose' },
+      'neon': { name: 'Neon Glow', swatch: 'neon' },
+      'glass': { name: 'Crystal Glass', swatch: 'glass' },
+      'film': { name: 'Film Classic', swatch: 'film' },
+      'vintage': { name: 'Vintage', swatch: 'vintage' },
+      'diamond': { name: 'Diamond', swatch: 'diamond' }
+    };;
+
     let wish = {
-      name: '', age: '', heading: 'To Someone Special', message: '', sender: '', relationship: 'Friend', theme: 'royal-gold', shape: 'circle',
+      name: '', age: '', heading: 'To Someone Special', message: '', sender: '', relationship: 'Friend', theme: 'royal-gold', shape: 'circle', frame: 'gold',
       effects: ['confetti', 'balloons'], intensity: 'medium', surprise: false, giftBox: false, mainPhoto: null, photos: [], transition: 'fade', photoDuration: 5, audio: null
     };
     wish.message = "Wishing you a beautiful birthday filled with happiness, success, love and countless unforgettable memories.";
 
     function buildThemeGrid() { const grid = $('wThemeGrid'); grid.innerHTML = ''; Object.entries(themes).forEach(([key, t]) => { const el = document.createElement('div'); el.className = 'tpl-card' + (key === wish.theme ? ' active' : ''); el.innerHTML = `<div class="swatch" style="background:${t.bg}"></div>${t.name}`; el.onclick = () => { wish.theme = key; buildThemeGrid(); updateMiniPreview(); }; grid.appendChild(el); }); }
+    function buildFrameGrid() { const grid = $('wFrameGrid'); grid.innerHTML = ''; Object.entries(frameStyles).forEach(([key, f]) => { const el = document.createElement('div'); el.className = 'tpl-card' + (key === wish.frame ? ' active' : ''); el.innerHTML = `<div class="frame-swatch ${f.swatch}"></div>${f.name}`; el.onclick = () => { wish.frame = key; buildFrameGrid(); updateMiniPreview(); }; grid.appendChild(el); }); }
     function setupChips(containerId, onSet, multi) { document.querySelectorAll(`#${containerId} .chip`).forEach(c => { c.onclick = () => { if (multi) { c.classList.toggle('active'); onSet([...document.querySelectorAll(`#${containerId} .chip.active`)].map(x => x.dataset.v)); } else { document.querySelectorAll(`#${containerId} .chip`).forEach(x => x.classList.remove('active')); c.classList.add('active'); onSet(c.dataset.v); } }; }); }
     setupChips('wShapeChips', v => { wish.shape = v; updateMiniPreview(); });
+    buildFrameGrid();
     setupChips('wEffectChips', v => { wish.effects = v; }, true);
     setupChips('transChips', v => { wish.transition = v; });
     setupChips('intensityChips', v => { wish.intensity = v; });
@@ -1656,13 +1710,14 @@
       $('wMiniMsg').textContent = wish.message;
       if (wish.mainPhoto) $('wMiniPhoto').innerHTML = `<img src="${wish.mainPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
       $('wMiniPhoto').style.borderRadius = wish.shape === 'circle' ? '50%' : wish.shape === 'polaroid' ? '4px' : '16px';
+      $('wMiniPhoto').style.boxShadow = frameStyles[wish.frame]?.swatch === 'gold' ? '0 0 0 5px #d4af37,0 0 0 9px rgba(212,175,55,.18)' : frameStyles[wish.frame]?.swatch === 'silver' ? '0 0 0 5px #dfe7ef,0 0 0 9px rgba(255,255,255,.12)' : frameStyles[wish.frame]?.swatch === 'rose' ? '0 0 0 5px #e0648a,0 0 0 9px rgba(224,100,138,.18)' : frameStyles[wish.frame]?.swatch === 'neon' ? '0 0 14px #67e8f9,0 0 30px rgba(168,85,247,.6)' : frameStyles[wish.frame]?.swatch === 'diamond' ? '0 0 0 4px #fff,0 0 0 7px #9da8b6' : '0 10px 30px rgba(0,0,0,.25)';
       $('wMiniMemCount').textContent = wish.photos.length ? `${wish.photos.length} memory photo${wish.photos.length > 1 ? 's' : ''} in the story` : '';
       updateMemoryPreview();
     }
     $('memoryPrev').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex - 1 + wish.photos.length) % wish.photos.length; updateMemoryPreview(); };
     $('memoryNext').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex + 1) % wish.photos.length; updateMemoryPreview(); };
 
-    buildThemeGrid(); updateMiniPreview();
+    buildThemeGrid(); buildFrameGrid(); updateMiniPreview();
 
     /* ---- image compression helper ---- */
     function compressImage(file, maxDim, quality, cb) {
@@ -1719,43 +1774,67 @@
 
     /* audio upload */
     const audioInput = $('audioInput'), audioUploadBox = $('audioUploadBox');
-    audioUploadBox.onclick = () => audioInput.click();
+    let audioObjectUrl = '';
+
+    // Prevent the wrapper click from triggering another input.click() after
+    // the browser has already opened the file picker.
+    audioUploadBox.addEventListener('click', e => {
+      if (e.target !== audioInput) audioInput.click();
+    });
+    audioInput.addEventListener('click', e => e.stopPropagation());
+
     audioInput.onchange = e => {
-      const f = e.target.files[0]; if (!f) return;
-      if (f.size > 6 * 1024 * 1024) { showToast('Please choose an audio file under 6MB'); return; }
-      const reader = new FileReader();
-      reader.onload = ev => {
-        wish.audio = { name: f.name, data: ev.target.result, volume: 0.7 };
-        updateShareSizeWarning();
-        $('audioPanel').style.display = 'block'; $('audioName').textContent = f.name;
-        $('audioSizeWarn').textContent = f.size > 600 * 1024
-          ? '✓ Music is kept out of the share link, so it will not make your WhatsApp message huge. It still plays in your local preview.'
-          : '✓ Music is local-only for sharing; it is not embedded in the share URL.';
-        const tmp = new Audio(ev.target.result);
-        function finalizeDuration(dur) {
-          dur = isFinite(dur) && dur > 0 ? dur : 0;
-          $('audioTimeDur').textContent = formatTime(dur);
-          wish.audio.duration = dur; wish.audio.start = 0; wish.audio.end = dur;
-          $('audioStart').max = Math.max(1, Math.floor(dur)); $('audioStart').value = 0;
-          $('audioEnd').max = Math.max(1, Math.floor(dur)); $('audioEnd').value = Math.floor(dur);
-          $('audioStartLabel').textContent = formatTime(0);
-          $('audioEndLabel').textContent = formatTime(dur);
-          if (!dur) showToast("Could not read this song's length — trimming may be limited, but it will still play.");
-        }
-        tmp.addEventListener('loadedmetadata', () => {
-          if (!isFinite(tmp.duration)) {
-            // some MP3s (often YouTube-sourced) report Infinity until forced to seek
-            tmp.currentTime = 1e101;
-            tmp.addEventListener('timeupdate', function getDur() {
-              tmp.removeEventListener('timeupdate', getDur);
-              const dur = tmp.duration; tmp.currentTime = 0;
-              finalizeDuration(dur);
-            });
-          } else { finalizeDuration(tmp.duration); }
-        });
-      };
-      reader.readAsDataURL(f);
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+
+      const isAudio = (f.type && f.type.startsWith('audio/')) ||
+        /\.(mp3|wav|m4a|ogg|aac|flac|webm)$/i.test(f.name);
+      if (!isAudio) {
+        showToast('Please choose an audio file (MP3, WAV, M4A, OGG, AAC, FLAC or WebM).');
+        audioInput.value = '';
+        return;
+      }
+      if (f.size > 6 * 1024 * 1024) {
+        showToast('Please choose an audio file under 6MB');
+        audioInput.value = '';
+        return;
+      }
+
+      if (audioObjectUrl) URL.revokeObjectURL(audioObjectUrl);
+      audioObjectUrl = URL.createObjectURL(f);
+      wish.audio = { name: f.name, data: audioObjectUrl, volume: 0.7, fileSize: f.size };
+
+      updateShareSizeWarning();
+      $('audioPanel').style.display = 'block';
+      $('audioName').textContent = f.name;
+      $('audioHint').textContent = '✓ Song uploaded';
+      $('audioSizeWarn').textContent = '✓ Song loaded for your preview. Music is NOT included in the share link, so WhatsApp will not receive the audio data.';
+
+      const tmp = new Audio();
+      tmp.preload = 'metadata';
+      tmp.src = audioObjectUrl;
+
+      function finalizeDuration(dur) {
+        dur = isFinite(dur) && dur > 0 ? dur : 0;
+        $('audioTimeDur').textContent = formatTime(dur);
+        wish.audio.duration = dur;
+        wish.audio.start = 0;
+        wish.audio.end = dur;
+        const max = Math.max(1, Math.floor(dur));
+        $('audioStart').max = max;
+        $('audioStart').value = 0;
+        $('audioEnd').max = max;
+        $('audioEnd').value = Math.floor(dur);
+        $('audioStartLabel').textContent = formatTime(0);
+        $('audioEndLabel').textContent = formatTime(dur);
+        if (!dur) showToast("Song loaded, but its duration could not be read. It can still be played.");
+      }
+
+      tmp.addEventListener('loadedmetadata', () => finalizeDuration(tmp.duration), { once: true });
+      tmp.addEventListener('error', () => showToast('The song was selected but this browser could not decode its audio format.'), { once: true });
+      tmp.load();
     };
+
     function formatTime(s) { if (!isFinite(s)) return '0:00'; const m = Math.floor(s / 60), sec = Math.floor(s % 60); return `${m}:${sec.toString().padStart(2, '0')}`; }
     let previewAudioEl = null, previewPlaying = false;
     $('audioPlayBtn').onclick = () => {
@@ -1781,13 +1860,46 @@
       e.target.value = v; if (wish.audio) wish.audio.end = v; $('audioEndLabel').textContent = formatTime(v);
     };
     $('audioVolume').oninput = e => { wish.audio && (wish.audio.volume = +e.target.value); if (previewAudioEl) previewAudioEl.volume = +e.target.value; };
-    $('audioRemoveBtn').onclick = () => { wish.audio = null; updateShareSizeWarning(); audioInput.value = ''; $('audioPanel').style.display = 'none'; if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl = null; previewPlaying = false; } };
+    $('audioRemoveBtn').onclick = () => {
+      wish.audio = null;
+      if (audioObjectUrl) { URL.revokeObjectURL(audioObjectUrl); audioObjectUrl = ''; }
+      updateShareSizeWarning();
+      audioInput.value = '';
+      $('audioHint').textContent = '🎵 Upload Song';
+      $('audioPanel').style.display = 'none';
+      if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl.src = ''; previewAudioEl = null; previewPlaying = false; }
+    };
 
     /* ================= SHARE / ENCODE =================
        Keep music local to the creator's preview. It is deliberately removed
        from the share payload so the URL stays compact and WhatsApp-friendly.
        Photos are compressed before upload and remain in the self-contained URL.
     */
+    // Share-link helpers: keep the URL self-contained, but never include local audio.
+    let generatedWishUrl = '';
+    function localLinkFor(w) {
+      // Never serialize the local audio Blob URL. Blob URLs only exist on the
+      // creator's device and would be useless (and huge if converted to base64)
+      // inside a WhatsApp link.
+      const shareWish = { ...w, audio: null };
+      return `${location.origin}${location.pathname}#wish=${encodeWish(shareWish)}`;
+    }
+
+    function normalizeWish(data) {
+      const base = {
+        name: '', age: '', heading: 'To Someone Special', message: 'Wishing you a beautiful birthday filled with happiness, success, love and countless unforgettable memories.',
+        sender: '', relationship: 'Friend', theme: 'royal-gold', shape: 'circle', frame: 'gold', effects: ['confetti', 'balloons'], intensity: 'medium',
+        surprise: false, giftBox: false, mainPhoto: null, photos: [], transition: 'fade', photoDuration: 5, audio: null
+      };
+      const out = { ...base, ...(data || {}) };
+      out.effects = Array.isArray(out.effects) ? out.effects : base.effects.slice();
+      out.photos = Array.isArray(out.photos) ? out.photos.filter(p => p && p.url) : [];
+      out.photoDuration = Number(out.photoDuration) || 5;
+      out.intensity = ['low','medium','high'].includes(out.intensity) ? out.intensity : 'medium';
+      out.frame = frameStyles[out.frame] ? out.frame : 'gold';
+      return out;
+    }
+
     function encodeWish(w) {
       return btoa(unescape(encodeURIComponent(JSON.stringify(w))))
         .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
@@ -2070,6 +2182,7 @@
 
     let storyTimer = null;
     function startExperience(w) {
+      w = normalizeWish(w);
       document.title = w.name ? `Happy Birthday ${w.name}! 🎂 | WishCraft` : 'A Birthday Wish | WishCraft';
       const t = themes[w.theme] || themes['royal-gold'];
       $('wishScreen').classList.add('active');
@@ -2156,8 +2269,11 @@
       $('rName').textContent = (w.name || '').toUpperCase();
       $('expMsg').textContent = w.message;
       $('expSender').innerHTML = `With best wishes,<br><strong>${w.sender || ''}</strong>`;
-      $('heroPhoto').style.borderRadius = w.shape === 'circle' ? '50%' : w.shape === 'polaroid' ? '4px' : w.shape === 'frame' ? '12px' : '20px';
-      if (w.shape === 'frame') { $('heroPhoto').style.boxShadow = `0 0 0 6px ${t.accent},0 20px 50px rgba(0,0,0,.4)`; }
+      $('heroPhoto').style.borderRadius = w.shape === 'circle' ? '50%' : w.shape === 'polaroid' ? '4px' : '20px';
+      $('heroPhoto').className = 'hero-photo show';
+      $('heroPhoto').classList.add('frame-' + (w.frame || 'gold'));
+      $('heroPhoto').classList.remove('show');
+      if (w.shape === 'frame') $('heroPhoto').classList.add('frame-' + (w.frame || 'gold'));
       if (w.mainPhoto) { $('heroPhotoImg').src = w.mainPhoto; } else if (w.photos.length) { $('heroPhotoImg').src = w.photos[0].url; }
 
       const steps = [
@@ -2193,27 +2309,32 @@
       const local = hash.match(/^#wish=([^&]+)/);
       const remote = hash.match(/^#wishurl=(.+)$/);
 
-      if (local) {
-        const data = decodeWish(local[1]);
-        if (data) { $('editorApp').style.display = 'none'; startExperience(data); }
-        return;
-      }
+      try {
+        if (local) {
+          const data = normalizeWish(decodeWish(local[1]));
+          if (data && data.name) {
+            $('editorApp').style.display = 'none';
+            startExperience(data);
+          }
+          return;
+        }
 
-      if (remote) {
-        try {
+        if (remote) {
           const mediaUrl = decodeURIComponent(remote[1]);
           const res = await fetch(mediaUrl, { cache: 'no-store' });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (!data || !data.name) throw new Error('Invalid wish data');
+          const data = normalizeWish(await res.json());
+          if (!data.name) throw new Error('Invalid wish data');
           $('editorApp').style.display = 'none';
           startExperience(data);
-        } catch (err) {
-          console.error('Could not load shared wish:', err);
-          showToast('This birthday wish could not be loaded.');
         }
+      } catch (err) {
+        console.error('Could not load shared wish:', err);
+        $('editorApp').style.display = '';
+        showToast('This birthday wish could not be loaded.');
       }
     })();
+
 
     document.querySelectorAll('.mode-tab').forEach(tab => {
       tab.onclick = () => {
