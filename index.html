@@ -579,23 +579,222 @@
       flex: 1;
     }
 
-    .balloon {
+    /* ===== realistic cinematic effects ===== */
+    #openParticles,
+    #heroParticles {
       position: absolute;
-      bottom: -10%;
-      font-size: 60px;
-      animation: floatUp linear infinite;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
     }
 
-    @keyframes floatUp {
-      0% {
-        transform: translateY(0) rotate(0deg);
-        opacity: .9;
-      }
+    .wish-stage > :not(#openParticles):not(#heroParticles) {
+      position: relative;
+      z-index: 2;
+    }
 
-      100% {
-        transform: translateY(-140vh) rotate(20deg);
-        opacity: 0;
-      }
+    .ambient-particle {
+      position: absolute;
+      width: var(--size, 4px);
+      height: var(--size, 4px);
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, #fff 0 12%, var(--particle-color, #f6d77a) 32%, rgba(212,175,55,.15) 72%, transparent 74%);
+      box-shadow: 0 0 12px var(--particle-glow, rgba(244,218,125,.8));
+      opacity: 0;
+      animation: ambientDrift var(--dur, 6s) ease-in-out var(--delay, 0s) infinite;
+    }
+
+    @keyframes ambientDrift {
+      0% { opacity: 0; transform: translate3d(0, 18px, 0) scale(.35); }
+      18% { opacity: .85; }
+      50% { opacity: 1; transform: translate3d(var(--dx, 14px), -8px, 0) scale(1); }
+      82% { opacity: .65; }
+      100% { opacity: 0; transform: translate3d(calc(var(--dx, 14px) * -1), -40px, 0) scale(.5); }
+    }
+
+    .confetti-piece {
+      position: absolute;
+      top: -8%;
+      width: var(--w, 7px);
+      height: var(--h, 15px);
+      border-radius: 1px;
+      transform-style: preserve-3d;
+      animation: confettiFall var(--dur, 3.8s) cubic-bezier(.2,.65,.35,1) var(--delay, 0s) forwards;
+      box-shadow: 0 1px 2px rgba(0,0,0,.25);
+    }
+
+    @keyframes confettiFall {
+      0% { transform: translate3d(0,-5vh,0) rotateX(0) rotateY(0) rotateZ(0); opacity: 0; }
+      8% { opacity: 1; }
+      45% { transform: translate3d(var(--drift, 25px),48vh,0) rotateX(190deg) rotateY(110deg) rotateZ(260deg); }
+      100% { transform: translate3d(calc(var(--drift, 25px) * -1),112vh,0) rotateX(540deg) rotateY(420deg) rotateZ(720deg); opacity: 0; }
+    }
+
+    .balloon-real {
+      position: absolute;
+      bottom: -14%;
+      width: var(--size, 58px);
+      height: calc(var(--size, 58px) * 1.18);
+      border-radius: 52% 48% 48% 52% / 58% 58% 42% 42%;
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,.8) 0 6%, rgba(255,255,255,.22) 12%, transparent 25%),
+        radial-gradient(circle at 68% 78%, rgba(0,0,0,.18), transparent 46%),
+        linear-gradient(145deg, var(--balloon-hi), var(--balloon-mid) 48%, var(--balloon-low));
+      box-shadow: inset -8px -10px 18px rgba(0,0,0,.14), inset 7px 5px 13px rgba(255,255,255,.16), 0 10px 25px rgba(0,0,0,.22);
+      animation: balloonFloat var(--dur, 9s) ease-in-out var(--delay, 0s) forwards;
+    }
+
+    .balloon-real::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -7px;
+      width: 9px;
+      height: 9px;
+      background: var(--balloon-mid);
+      clip-path: polygon(50% 100%, 0 0, 100% 0);
+      transform: translateX(-50%);
+    }
+
+    .balloon-real::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 1px);
+      width: 1px;
+      height: var(--string, 120px);
+      background: linear-gradient(to bottom, rgba(255,255,255,.65), rgba(255,255,255,.08));
+      transform: translateX(-50%);
+    }
+
+    @keyframes balloonFloat {
+      0% { opacity: 0; transform: translate3d(0, 12vh, 0) rotate(-4deg); }
+      12% { opacity: .95; }
+      50% { transform: translate3d(var(--sway, 20px), -52vh, 0) rotate(5deg); }
+      100% { opacity: 0; transform: translate3d(calc(var(--sway, 20px) * -1), -125vh, 0) rotate(-7deg); }
+    }
+
+    .heart-piece {
+      position: absolute;
+      bottom: -7%;
+      width: var(--size, 18px);
+      height: var(--size, 18px);
+      background: radial-gradient(circle at 35% 25%, #fff 0 7%, #ffb3c7 18%, #e44d73 55%, #a71f48 100%);
+      clip-path: polygon(50% 100%, 8% 58%, 5% 35%, 14% 16%, 31% 10%, 50% 26%, 69% 10%, 86% 16%, 95% 35%, 92% 58%);
+      filter: drop-shadow(0 5px 8px rgba(0,0,0,.22));
+      animation: heartFloat var(--dur, 6s) ease-in var(--delay, 0s) forwards;
+    }
+
+    @keyframes heartFloat {
+      0% { opacity: 0; transform: translate3d(0, 8vh, 0) scale(.55) rotate(-12deg); }
+      12% { opacity: .95; }
+      55% { transform: translate3d(var(--dx, 30px), -58vh, 0) scale(1) rotate(8deg); }
+      100% { transform: translate3d(calc(var(--dx, 30px) * -1), -120vh, 0) scale(.7) rotate(-15deg); opacity: 0; }
+    }
+
+    .spark {
+      position: absolute;
+      width: var(--size, 5px);
+      height: var(--size, 5px);
+      background: radial-gradient(circle, #fff 0 22%, var(--spark-color, #f7df91) 38%, transparent 72%);
+      filter: drop-shadow(0 0 7px var(--spark-color, #f7df91));
+      clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+      animation: sparkPulse var(--dur, 1.8s) ease-in-out var(--delay, 0s) infinite;
+    }
+
+    @keyframes sparkPulse {
+      0%, 100% { opacity: 0; transform: scale(.2) rotate(0deg); }
+      42% { opacity: .35; transform: scale(.7) rotate(35deg); }
+      55% { opacity: 1; transform: scale(1.25) rotate(45deg); }
+      75% { opacity: .25; transform: scale(.55) rotate(70deg); }
+    }
+
+    .firework-burst {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+
+    .firework-ray {
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      width: 2px;
+      height: var(--len, 44px);
+      border-radius: 999px;
+      background: linear-gradient(to top, rgba(255,255,255,.95), var(--fw-color, #d4af37), transparent);
+      transform-origin: 50% 100%;
+      animation: fireworkRay .95s cubic-bezier(.1,.65,.2,1) forwards;
+      filter: drop-shadow(0 0 5px var(--fw-color, #d4af37));
+    }
+
+    @keyframes fireworkRay {
+      0% { opacity: 0; transform: rotate(var(--angle)) translateY(0) scaleY(.1); }
+      12% { opacity: 1; }
+      100% { opacity: 0; transform: rotate(var(--angle)) translateY(calc(var(--distance) * -1)) scaleY(1); }
+    }
+
+    .giftbox {
+      position: relative;
+      width: 126px;
+      height: 112px;
+      cursor: pointer;
+      transform-origin: 50% 85%;
+      filter: drop-shadow(0 18px 25px rgba(0,0,0,.38));
+      transition: transform .25s ease, filter .25s ease;
+    }
+
+    .giftbox:hover, .giftbox:focus-visible {
+      transform: translateY(-5px) rotate(-2deg) scale(1.04);
+      outline: none;
+    }
+
+    .gift-body {
+      position: absolute;
+      left: 13px;
+      right: 13px;
+      bottom: 0;
+      height: 78px;
+      border-radius: 8px 8px 12px 12px;
+      background: linear-gradient(135deg, #b88922, #f2d36d 45%, #9c6b12);
+      box-shadow: inset 0 5px 10px rgba(255,255,255,.2), inset 0 -10px 18px rgba(0,0,0,.18);
+    }
+
+    .gift-lid {
+      position: absolute;
+      left: 7px;
+      right: 7px;
+      top: 19px;
+      height: 28px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #d7ae36, #ffe99b 48%, #a97a17);
+      z-index: 2;
+      box-shadow: 0 5px 8px rgba(0,0,0,.2), inset 0 4px 8px rgba(255,255,255,.2);
+    }
+
+    .gift-ribbon-v, .gift-ribbon-h {
+      position: absolute;
+      background: linear-gradient(90deg, #f8e7a6, #c99b2d, #f8e7a6);
+      box-shadow: 0 0 8px rgba(244,228,166,.2);
+    }
+
+    .gift-ribbon-v { left: 50%; top: 0; width: 16px; height: 100%; transform: translateX(-50%); }
+    .gift-ribbon-h { left: 0; right: 0; top: 34px; height: 12px; z-index: 3; }
+
+    .giftbox.opening {
+      animation: giftOpen .75s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+
+    @keyframes giftOpen {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.08) rotate(-3deg); }
+      100% { transform: scale(.82) translateY(12px); opacity: .15; }
+    }
+
+    .wish-stage.effect-cleanup {
+      contain: layout paint;
     }
 
     /* mini preview */
@@ -1169,12 +1368,12 @@
         <div class="card">
           <h3><span class="step-num">7</span>Animations</h3>
           <div class="chip-row" id="wEffectChips">
-            <div class="chip active" data-v="confetti">🎊 Confetti</div>
-            <div class="chip active" data-v="balloons">🎈 Balloons</div>
-            <div class="chip" data-v="sparkles">✨ Sparkles</div>
-            <div class="chip" data-v="fireworks">🎆 Fireworks</div>
-            <div class="chip" data-v="hearts">💖 Hearts</div>
-            <div class="chip" data-v="particles">🌟 Golden Particles</div>
+            <div class="chip active" data-v="confetti">Confetti</div>
+            <div class="chip active" data-v="balloons">Balloons</div>
+            <div class="chip" data-v="sparkles">Sparkles</div>
+            <div class="chip" data-v="fireworks">Fireworks</div>
+            <div class="chip" data-v="hearts">Hearts</div>
+            <div class="chip" data-v="particles">Golden Particles</div>
           </div>
           <label>Effects intensity</label>
           <div class="chip-row" id="intensityChips">
@@ -1277,7 +1476,7 @@
           </div>
           <label>Effects</label>
           <div class="chip-row" id="effectChips">
-            <div class="chip" data-v="balloons">🎈 Balloons</div>
+            <div class="chip" data-v="balloons">Balloons</div>
             <div class="chip" data-v="none">None</div>
           </div>
         </div>
@@ -1321,19 +1520,19 @@
       <div class="wish-title" id="openTitle">A Special Surprise<br>Is Waiting For You</div>
       <div class="wish-sub" id="openSub"></div>
       <div class="wish-sender-credit" id="openCredit"></div>
-      <button class="btn btn-gold open-btn" id="openBtn">🎁 Open Your Birthday Wish</button>
+      <button class="btn btn-gold open-btn" id="openBtn">Open Your Birthday Wish</button>
     </div>
 
     <div class="wish-stage hidden" id="stageGift">
       <div class="wish-title" style="margin-bottom:24px;">Your Birthday Surprise Is Here</div>
-      <div class="giftbox" id="giftBoxEl">🎁</div>
+      <div class="giftbox" id="giftBoxEl" role="button" tabindex="0" aria-label="Open birthday gift"><div class="gift-lid"></div><div class="gift-body"><span class="gift-ribbon-v"></span><span class="gift-ribbon-h"></span></div></div>
       <div class="small" style="margin-top:18px;opacity:.7;">Tap the gift to open it</div>
     </div>
 
     <div class="wish-stage hidden" id="stageStory" style="cursor:pointer;">
       <div class="story-progress" id="storyProgress"></div>
       <div id="storyStage"></div>
-      <div class="small" style="opacity:.9;">👆 tap anywhere to continue</div>
+      <div class="small" style="opacity:.9;">Tap anywhere to continue</div>
     </div>
 
     <div class="wish-stage hidden" id="stageHero">
@@ -1371,14 +1570,14 @@
 
     /* ================= THEMES (8) ================= */
     const themes = {
-      'royal-gold': { name: 'Royal Gold', bg: 'linear-gradient(160deg,#1a1400,#3a2b00 60%,#1a1400)', text: '#f4e4a6', accent: '#d4af37', font: 'Georgia, serif', particles: '✨' },
-      'midnight-luxury': { name: 'Midnight Luxury', bg: 'linear-gradient(160deg,#000000,#141428 60%,#000000)', text: '#f0d98c', accent: '#c9a227', font: 'Georgia, serif', particles: '⭐' },
-      'rose-romance': { name: 'Rose Romance', bg: 'linear-gradient(160deg,#2b0f1c,#6b1f3a 60%,#2b0f1c)', text: '#ffd7e2', accent: '#e0648a', font: 'Georgia, serif', particles: '💖' },
-      'blue-celebration': { name: 'Blue Celebration', bg: 'linear-gradient(160deg,#0b1f3d,#1e6091 60%,#0b1f3d)', text: '#ffffff', accent: '#7fd8ff', font: "'Segoe UI',sans-serif", particles: '🎈' },
-      'golden-memories': { name: 'Golden Memories', bg: 'linear-gradient(160deg,#3a2a0f,#8a6a1f 60%,#3a2a0f)', text: '#fff3d6', accent: '#e8c465', font: 'Georgia, serif', particles: '🌟' },
-      'pastel-birthday': { name: 'Pastel Birthday', bg: 'linear-gradient(160deg,#ffe8f0,#e0c3fc)', text: '#4a2b4d', accent: '#c88fd6', font: "'Segoe UI',sans-serif", particles: '🎉' },
-      'black-gold': { name: 'Black & Gold', bg: 'linear-gradient(160deg,#000000,#1a1a1a 60%,#000000)', text: '#e8c465', accent: '#d4af37', font: 'Georgia, serif', particles: '✨' },
-      'dreamy-celebration': { name: 'Dreamy Celebration', bg: 'linear-gradient(160deg,#1b1035,#3d2a6b 60%,#1b1035)', text: '#e6dcff', accent: '#b39ddb', font: 'Georgia, serif', particles: '💫' }
+      'royal-gold': { name: 'Royal Gold', bg: 'linear-gradient(160deg,#1a1400,#3a2b00 60%,#1a1400)', text: '#f4e4a6', accent: '#d4af37', font: 'Georgia, serif', particleTone: '#f4d97c' },
+      'midnight-luxury': { name: 'Midnight Luxury', bg: 'linear-gradient(160deg,#000000,#141428 60%,#000000)', text: '#f0d98c', accent: '#c9a227', font: 'Georgia, serif', particleTone: '#f0d98c' },
+      'rose-romance': { name: 'Rose Romance', bg: 'linear-gradient(160deg,#2b0f1c,#6b1f3a 60%,#2b0f1c)', text: '#ffd7e2', accent: '#e0648a', font: 'Georgia, serif', particleTone: '#e0648a' },
+      'blue-celebration': { name: 'Blue Celebration', bg: 'linear-gradient(160deg,#0b1f3d,#1e6091 60%,#0b1f3d)', text: '#ffffff', accent: '#7fd8ff', font: "'Segoe UI',sans-serif", particleTone: '#7fd8ff' },
+      'golden-memories': { name: 'Golden Memories', bg: 'linear-gradient(160deg,#3a2a0f,#8a6a1f 60%,#3a2a0f)', text: '#fff3d6', accent: '#e8c465', font: 'Georgia, serif', particleTone: '#e8c465' },
+      'pastel-birthday': { name: 'Pastel Birthday', bg: 'linear-gradient(160deg,#ffe8f0,#e0c3fc)', text: '#4a2b4d', accent: '#c88fd6', font: "'Segoe UI',sans-serif", particleTone: '#c88fd6' },
+      'black-gold': { name: 'Black & Gold', bg: 'linear-gradient(160deg,#000000,#1a1a1a 60%,#000000)', text: '#e8c465', accent: '#d4af37', font: 'Georgia, serif', particleTone: '#f4d97c' },
+      'dreamy-celebration': { name: 'Dreamy Celebration', bg: 'linear-gradient(160deg,#1b1035,#3d2a6b 60%,#1b1035)', text: '#e6dcff', accent: '#b39ddb', font: 'Georgia, serif', particleTone: '#b39ddb' }
     };
 
     let wish = {
@@ -1534,19 +1733,144 @@
     $('audioVolume').oninput = e => { wish.audio && (wish.audio.volume = +e.target.value); if (previewAudioEl) previewAudioEl.volume = +e.target.value; };
     $('audioRemoveBtn').onclick = () => { wish.audio = null; audioInput.value = ''; $('audioPanel').style.display = 'none'; if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl = null; previewPlaying = false; } };
 
-    /* ================= ENCODE / DECODE ================= */
-    function encodeWish(w) { return btoa(encodeURIComponent(JSON.stringify(w))).replace(/\+/g, '-').replace(/\//g, '_'); }
-    function decodeWish(str) { try { return JSON.parse(decodeURIComponent(atob(str.replace(/-/g, '+').replace(/_/g, '/')))); } catch (e) { return null; } }
-    function buildLink() {
-      if (!wish.name.trim()) { showToast("Please enter the birthday person's name"); $('wName').focus(); return null; }
-      return location.origin + location.pathname + '#wish=' + encodeWish(wish);
+    /* ================= SHARE / ENCODE =================
+       Binary media (photos/audio) must never be placed in the URL.
+       They made the old WhatsApp link enormous and unreliable.
+       When /api/wish is deployed, the wish is stored in Vercel Blob and
+       the shared URL contains only a short pointer. Text-only wishes can
+       still use a local fallback URL.
+    */
+    function encodeWish(w) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(w))))
+        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     }
-    $('wGenerateBtn').onclick = () => { const url = buildLink(); if (!url) return; $('wLinkOutput').value = url; $('wLinkResult').style.display = 'block'; showToast('🎉 Your birthday wish link is ready!'); };
-    $('wCopyLink').onclick = async () => { try { await navigator.clipboard.writeText($('wLinkOutput').value); showToast('Link copied!'); } catch (e) { showToast('Copy failed — select and copy manually.'); } };
-    $('wCopyMsg').onclick = async () => { const n = wish.name || 'friend'; try { await navigator.clipboard.writeText(`Happy Birthday ${n}! 🎉\n${wish.message}`); showToast('Message copied!'); } catch (e) { } };
-    $('wShareWA').onclick = () => { const url = $('wLinkOutput').value || buildLink(); if (!url) return; const msg = `🎂 I created a special birthday surprise for you.\n\nOpen it here:\n${url}\n\nTurn Wishes Into Memories — WishCraft`; window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank'); };
-    $('wShareNative').onclick = async () => { const url = $('wLinkOutput').value || buildLink(); if (!url) return; if (navigator.share) { try { await navigator.share({ title: 'A Birthday Wish', text: 'Someone created a special birthday wish for you!', url }); } catch (e) { } } else { navigator.clipboard.writeText(url); showToast('Link copied instead — sharing not supported here.'); } };
-    $('wPreviewBtn').onclick = () => { if (!wish.name.trim()) { showToast("Please enter the birthday person's name"); $('wName').focus(); return; } startExperience(wish); };
+
+    function decodeWish(str) {
+      try {
+        const pad = str.length % 4 ? '='.repeat(4 - (str.length % 4)) : '';
+        return JSON.parse(decodeURIComponent(escape(atob(str.replace(/-/g, '+').replace(/_/g, '/') + pad))));
+      } catch (e) { return null; }
+    }
+
+    function hasBinaryMedia(w) {
+      return !!(w.mainPhoto || (w.photos && w.photos.length) || (w.audio && w.audio.data));
+    }
+
+    function localLinkFor(w) {
+      return location.origin + location.pathname + '#wish=' + encodeWish(w);
+    }
+
+    let generatedWishUrl = '';
+
+    async function buildLink() {
+      if (!wish.name.trim()) {
+        showToast("Please enter the birthday person's name");
+        $('wName').focus();
+        return null;
+      }
+
+      if (!hasBinaryMedia(wish)) {
+        const url = localLinkFor(wish);
+        generatedWishUrl = url;
+        return url;
+      }
+
+      // Media requires server-side storage. This prevents base64 photos/audio
+      // from being pasted into WhatsApp as a multi-megabyte URL.
+      try {
+        const payload = JSON.stringify(wish);
+        if (new Blob([payload]).size > 3900000) {
+          showToast('Your media is too large for one share. Reduce photos/audio and try again.');
+          return null;
+        }
+
+        const res = await fetch('/api/wish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: payload
+        });
+
+        if (!res.ok) {
+          const detail = await res.text().catch(() => '');
+          throw new Error(detail || `HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        if (!data.url) throw new Error('Storage URL missing');
+        generatedWishUrl = location.origin + location.pathname + '#wishurl=' + encodeURIComponent(data.url);
+        return generatedWishUrl;
+      } catch (err) {
+        console.error('Wish storage error:', err);
+        showToast('Media sharing needs the Vercel /api/wish storage function.');
+        return null;
+      }
+    }
+
+    async function getShareUrl() {
+      return generatedWishUrl || await buildLink();
+    }
+
+    $('wGenerateBtn').onclick = async () => {
+      const btn = $('wGenerateBtn');
+      const old = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span>Creating secure share link…';
+      try {
+        const url = await buildLink();
+        if (!url) return;
+        $('wLinkOutput').value = url;
+        $('wLinkResult').style.display = 'block';
+        showToast('Birthday wish link is ready.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = old;
+      }
+    };
+
+    $('wCopyLink').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText($('wLinkOutput').value);
+        showToast('Link copied.');
+      } catch (e) {
+        showToast('Copy failed — select and copy manually.');
+      }
+    };
+
+    $('wCopyMsg').onclick = async () => {
+      const n = wish.name || 'friend';
+      try {
+        await navigator.clipboard.writeText(`Happy Birthday ${n}!\n${wish.message}`);
+        showToast('Message copied.');
+      } catch (e) { }
+    };
+
+    $('wShareWA').onclick = async () => {
+      const url = await getShareUrl();
+      if (!url) return;
+      const msg = `I created a special birthday surprise for you.\n\nOpen it here:\n${url}\n\nTurn Wishes Into Memories — WishCraft`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    };
+
+    $('wShareNative').onclick = async () => {
+      const url = await getShareUrl();
+      if (!url) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: 'A Birthday Wish', text: 'Someone created a special birthday wish for you!', url });
+        } catch (e) { }
+      } else {
+        try { await navigator.clipboard.writeText(url); showToast('Link copied instead — sharing is not supported here.'); } catch (e) { }
+      }
+    };
+
+    $('wPreviewBtn').onclick = () => {
+      if (!wish.name.trim()) {
+        showToast("Please enter the birthday person's name");
+        $('wName').focus();
+        return;
+      }
+      startExperience(wish);
+    };
 
     /* ================= CINEMATIC EXPERIENCE ================= */
     let audioCtx = null, analyser = null, bgAudioSrcNode = null, muted = false;
@@ -1568,12 +1892,122 @@
     function playChime() { try { const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();[523.25, 659.25, 783.99].forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(ctx.destination); const t0 = ctx.currentTime + i * 0.18; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.12, t0 + 0.05); g.gain.linearRampToValueAtTime(0, t0 + 0.5); o.start(t0); o.stop(t0 + 0.5); }); } catch (e) { } }
     $('muteToggle').onclick = () => { muted = !muted; bgAudio.muted = muted; $('muteToggle').textContent = muted ? '🔇' : '🔊'; };
 
-    function intensityCount(base, intensity) { return intensity === 'low' ? Math.round(base * 0.5) : intensity === 'high' ? Math.round(base * 1.8) : base; }
-    function spawnParticles(container, emoji, count) { container.innerHTML = ''; for (let i = 0; i < count; i++) { const el = document.createElement('div'); el.className = 'star'; el.textContent = emoji; el.style.left = (Math.random() * 100) + '%'; el.style.top = (Math.random() * 100) + '%'; el.style.fontSize = (10 + Math.random() * 14) + 'px'; el.style.animationDelay = (Math.random() * 2.5) + 's'; container.appendChild(el); } }
-    function spawnConfetti(root, count) { const colors = ['#d4af37', '#ff5f6d', '#845ec2', '#7fd8ff', '#ffffff']; for (let i = 0; i < count; i++) { const el = document.createElement('div'); el.className = 'confetti-piece'; el.style.left = (Math.random() * 100) + '%'; el.style.background = colors[i % colors.length]; el.style.animationDuration = (2.5 + Math.random() * 2) + 's'; el.style.animationDelay = (Math.random() * 1.2) + 's'; el.style.transform = `rotate(${Math.random() * 360}deg)`; root.appendChild(el); setTimeout(() => el.remove(), 5500); } }
-    function spawnBalloons(root, count) { const glyphs = ['🎈', '🎈', '🎉']; for (let i = 0; i < count; i++) { const el = document.createElement('div'); el.style.position = 'absolute'; el.className = 'balloon'; el.textContent = glyphs[i % glyphs.length]; el.style.left = (Math.random() * 90) + '%'; el.style.fontSize = (30 + Math.random() * 30) + 'px'; el.style.animationDuration = (6 + Math.random() * 4) + 's'; el.style.animationDelay = (Math.random() * 3) + 's'; root.appendChild(el); setTimeout(() => el.remove(), 11000); } }
-    function spawnHearts(root, count) { for (let i = 0; i < count; i++) { const el = document.createElement('div'); el.className = 'heart-piece'; el.textContent = '💖'; el.style.left = (Math.random() * 90) + '%'; el.style.fontSize = (16 + Math.random() * 18) + 'px'; el.style.setProperty('--dx', (Math.random() * 60 - 30) + 'px'); el.style.animationDuration = (4 + Math.random() * 3) + 's'; root.appendChild(el); setTimeout(() => el.remove(), 8000); } }
-    function spawnFireworks(root, count) { const colors = ['#d4af37', '#ff5f6d', '#7fd8ff', '#ffffff', '#845ec2']; for (let b = 0; b < count; b++) { setTimeout(() => { const cx = 20 + Math.random() * 60, cy = 15 + Math.random() * 35; for (let i = 0; i < 16; i++) { const el = document.createElement('div'); el.className = 'firework'; const ang = (i / 16) * Math.PI * 2, dist = 40 + Math.random() * 40; el.style.left = cx + '%'; el.style.top = cy + '%'; el.style.background = colors[b % colors.length]; el.style.setProperty('--fx', Math.cos(ang) * dist + 'px'); el.style.setProperty('--fy', Math.sin(ang) * dist + 'px'); root.appendChild(el); setTimeout(() => el.remove(), 1000); } }, b * 500); } }
+    function intensityCount(base, intensity) {
+      return intensity === 'low' ? Math.max(1, Math.round(base * 0.5))
+        : intensity === 'high' ? Math.round(base * 1.8) : base;
+    }
+
+    function spawnAmbientParticles(container, count, color = '#f4d878') {
+      container.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'ambient-particle';
+        el.style.left = (Math.random() * 100) + '%';
+        el.style.top = (Math.random() * 100) + '%';
+        el.style.setProperty('--size', (2 + Math.random() * 5) + 'px');
+        el.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px');
+        el.style.setProperty('--dur', (4 + Math.random() * 5) + 's');
+        el.style.setProperty('--delay', (-Math.random() * 6) + 's');
+        el.style.setProperty('--particle-color', color);
+        el.style.setProperty('--particle-glow', color + 'aa');
+        container.appendChild(el);
+      }
+    }
+
+    function spawnConfetti(root, count) {
+      const colors = ['#d4af37', '#f7df91', '#caa44d', '#f1f1f1', '#b88922'];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = (Math.random() * 100) + '%';
+        el.style.setProperty('--w', (5 + Math.random() * 5) + 'px');
+        el.style.setProperty('--h', (9 + Math.random() * 11) + 'px');
+        el.style.background = colors[i % colors.length];
+        el.style.setProperty('--dur', (2.8 + Math.random() * 2.2) + 's');
+        el.style.setProperty('--delay', (Math.random() * 1.1) + 's');
+        el.style.setProperty('--drift', (Math.random() * 180 - 90) + 'px');
+        root.appendChild(el);
+        setTimeout(() => el.remove(), 6500);
+      }
+    }
+
+    function spawnBalloons(root, count) {
+      const palette = [
+        ['#fff0a8', '#d4af37', '#7f5c12'],
+        ['#f4d4dc', '#c96a86', '#7f3047'],
+        ['#d7f3ff', '#70c8ef', '#286c9b'],
+        ['#eadcff', '#a77be2', '#62418f']
+      ];
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'balloon-real';
+        const c = palette[i % palette.length];
+        el.style.left = (Math.random() * 90 + 3) + '%';
+        el.style.setProperty('--size', (42 + Math.random() * 28) + 'px');
+        el.style.setProperty('--balloon-hi', c[0]);
+        el.style.setProperty('--balloon-mid', c[1]);
+        el.style.setProperty('--balloon-low', c[2]);
+        el.style.setProperty('--dur', (7 + Math.random() * 4) + 's');
+        el.style.setProperty('--delay', (Math.random() * 2.5) + 's');
+        el.style.setProperty('--sway', (15 + Math.random() * 28) * (Math.random() > .5 ? 1 : -1) + 'px');
+        el.style.setProperty('--string', (80 + Math.random() * 80) + 'px');
+        root.appendChild(el);
+        setTimeout(() => el.remove(), 13000);
+      }
+    }
+
+    function spawnHearts(root, count) {
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'heart-piece';
+        el.style.left = (Math.random() * 90 + 3) + '%';
+        el.style.setProperty('--size', (13 + Math.random() * 14) + 'px');
+        el.style.setProperty('--dx', (25 + Math.random() * 55) * (Math.random() > .5 ? 1 : -1) + 'px');
+        el.style.setProperty('--dur', (4.5 + Math.random() * 3) + 's');
+        el.style.setProperty('--delay', (Math.random() * 1.5) + 's');
+        root.appendChild(el);
+        setTimeout(() => el.remove(), 9000);
+      }
+    }
+
+    function spawnSparkles(root, count, color = '#f7df91') {
+      for (let i = 0; i < count; i++) {
+        const el = document.createElement('div');
+        el.className = 'spark';
+        el.style.left = (Math.random() * 94 + 3) + '%';
+        el.style.top = (Math.random() * 88 + 4) + '%';
+        el.style.setProperty('--size', (4 + Math.random() * 8) + 'px');
+        el.style.setProperty('--spark-color', color);
+        el.style.setProperty('--dur', (1.2 + Math.random() * 1.7) + 's');
+        el.style.setProperty('--delay', (-Math.random() * 2.5) + 's');
+        root.appendChild(el);
+      }
+      setTimeout(() => root.querySelectorAll('.spark').forEach(e => e.remove()), 9000);
+    }
+
+    function spawnFireworks(root, count, color = '#d4af37') {
+      const colors = [color, '#f7df91', '#ffffff', '#caa44d'];
+      for (let b = 0; b < count; b++) {
+        setTimeout(() => {
+          const burst = document.createElement('div');
+          burst.className = 'firework-burst';
+          burst.style.left = (18 + Math.random() * 64) + '%';
+          burst.style.top = (12 + Math.random() * 38) + '%';
+          const c = colors[b % colors.length];
+          for (let i = 0; i < 22; i++) {
+            const ray = document.createElement('div');
+            ray.className = 'firework-ray';
+            ray.style.setProperty('--angle', (i / 22 * 360) + 'deg');
+            ray.style.setProperty('--distance', (30 + Math.random() * 58) + 'px');
+            ray.style.setProperty('--len', (22 + Math.random() * 24) + 'px');
+            ray.style.setProperty('--fw-color', c);
+            burst.appendChild(ray);
+          }
+          root.appendChild(burst);
+          setTimeout(() => burst.remove(), 1200);
+        }, b * 650);
+      }
+    }
 
     function setStage(id) { document.querySelectorAll('.wish-stage').forEach(s => s.classList.add('hidden')); $(id).classList.remove('hidden'); }
 
@@ -1588,7 +2022,7 @@
       $('openTitle').innerHTML = w.surprise ? 'A Special Birthday<br>Surprise Awaits' : 'A Special Surprise<br>Is Waiting For You';
       $('openSub').textContent = w.surprise ? 'Someone has prepared a special birthday surprise for you...' : 'Someone created a special surprise for you.';
       $('openCredit').textContent = w.sender ? `Created with love by ${w.sender}` : '';
-      spawnParticles($('openParticles'), t.particles, intensityCount(16, w.intensity));
+      spawnAmbientParticles($('openParticles'), intensityCount(18, w.intensity), t.particleTone || t.accent);
       setStage('stageOpening');
 
       const hasViz = !!w.audio;
@@ -1606,12 +2040,28 @@
         } else { playChime(); }
         if (w.giftBox) { setStage('stageGift'); } else { runStoryOrHero(w, t); }
       };
-      $('giftBoxEl').onclick = () => { $('giftBoxEl').textContent = '🎉'; spawnConfetti($('stageGift'), intensityCount(40, w.intensity)); setTimeout(() => runStoryOrHero(w, t), 700); };
+      $('giftBoxEl').onclick = () => { $('giftBoxEl').classList.add('opening'); spawnConfetti($('stageGift'), intensityCount(40, w.intensity)); spawnSparkles($('stageGift'), intensityCount(14, w.intensity), t.accent); setTimeout(() => runStoryOrHero(w, t), 700); };
 
       $('createOwnBtn').onclick = () => { closeExperience(); document.querySelector('.mode-tab[data-mode="wish"]').click(); window.scrollTo({ top: 0 }); };
-      $('finalWA').onclick = () => { const url = location.href; window.open(`https://wa.me/?text=${encodeURIComponent('🎂 A special birthday surprise was created for you!\n\nOpen your birthday wish:\n' + url + '\n\nTurn Wishes Into Memories — WishCraft')}`, '_blank'); };
-      $('finalCopy').onclick = async () => { try { await navigator.clipboard.writeText(location.href); showToast('Link copied!'); } catch (e) { } };
-      $('finalShare').onclick = async () => { if (navigator.share) { try { await navigator.share({ title: 'Happy Birthday!', url: location.href }); } catch (e) { } } else { showToast('Sharing not supported here.'); } };
+      $('finalWA').onclick = async () => {
+        const url = location.hash ? location.href : await getShareUrl();
+        if (!url) return;
+        window.open(`https://wa.me/?text=${encodeURIComponent('A special birthday surprise was created for you.\n\nOpen your birthday wish:\n' + url + '\n\nTurn Wishes Into Memories — WishCraft')}`, '_blank', 'noopener,noreferrer');
+      };
+      $('finalCopy').onclick = async () => {
+        const url = location.hash ? location.href : await getShareUrl();
+        if (!url) return;
+        try { await navigator.clipboard.writeText(url); showToast('Link copied.'); } catch (e) { }
+      };
+      $('finalShare').onclick = async () => {
+        const url = location.hash ? location.href : await getShareUrl();
+        if (!url) return;
+        if (navigator.share) {
+          try { await navigator.share({ title: 'Happy Birthday!', url }); } catch (e) { }
+        } else {
+          try { await navigator.clipboard.writeText(url); showToast('Link copied.'); } catch (e) { }
+        }
+      };
     }
 
     function runStoryOrHero(w, t) {
@@ -1640,7 +2090,7 @@
 
     function runHero(w, t) {
       setStage('stageHero');
-      spawnParticles($('heroParticles'), t.particles, intensityCount(14, w.intensity));
+      spawnAmbientParticles($('heroParticles'), intensityCount(22, w.intensity), t.particleTone || t.accent);
       ['rLine1', 'rLine2', 'rName', 'heroPhoto', 'expMsg', 'expSender'].forEach(id => $(id).classList.remove('show'));
       $('rName').textContent = (w.name || '').toUpperCase();
       $('expMsg').textContent = w.message;
@@ -1655,10 +2105,12 @@
         () => $('rName').classList.add('show'),
         () => {
           $('heroPhoto').classList.add('show');
-          if (w.effects.includes('confetti')) spawnConfetti($('stageHero'), intensityCount(50, w.intensity));
-          if (w.effects.includes('balloons')) spawnBalloons($('stageHero'), intensityCount(8, w.intensity));
+          if (w.effects.includes('confetti')) spawnConfetti($('stageHero'), intensityCount(46, w.intensity));
+          if (w.effects.includes('balloons')) spawnBalloons($('stageHero'), intensityCount(7, w.intensity));
+          if (w.effects.includes('sparkles')) spawnSparkles($('stageHero'), intensityCount(18, w.intensity), t.accent);
           if (w.effects.includes('hearts')) spawnHearts($('stageHero'), intensityCount(10, w.intensity));
-          if (w.effects.includes('fireworks')) spawnFireworks($('stageHero'), intensityCount(3, w.intensity));
+          if (w.effects.includes('fireworks')) spawnFireworks($('stageHero'), intensityCount(3, w.intensity), t.accent);
+          if (w.effects.includes('particles')) spawnAmbientParticles($('heroParticles'), intensityCount(32, w.intensity), t.accent);
         },
         () => $('expMsg').classList.add('show'),
         () => $('expSender').classList.add('show'),
@@ -1675,9 +2127,31 @@
 
     function closeExperience() { $('wishScreen').classList.remove('active'); document.body.style.overflow = ''; bgAudio.pause(); }
 
-    (function checkHash() {
-      const m = location.hash.match(/#wish=(.+)/);
-      if (m) { const data = decodeWish(m[1]); if (data) { $('editorApp').style.display = 'none'; startExperience(data); } }
+    (async function checkHash() {
+      const hash = location.hash;
+      const local = hash.match(/^#wish=([^&]+)/);
+      const remote = hash.match(/^#wishurl=(.+)$/);
+
+      if (local) {
+        const data = decodeWish(local[1]);
+        if (data) { $('editorApp').style.display = 'none'; startExperience(data); }
+        return;
+      }
+
+      if (remote) {
+        try {
+          const mediaUrl = decodeURIComponent(remote[1]);
+          const res = await fetch(mediaUrl, { cache: 'no-store' });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!data || !data.name) throw new Error('Invalid wish data');
+          $('editorApp').style.display = 'none';
+          startExperience(data);
+        } catch (err) {
+          console.error('Could not load shared wish:', err);
+          showToast('This birthday wish could not be loaded.');
+        }
+      }
     })();
 
     document.querySelectorAll('.mode-tab').forEach(tab => {
@@ -1695,7 +2169,7 @@
     let state = { template: 'gold', name: '', age: '', message: presets.default, sender: '', align: 'center', font: "Georgia, serif", shape: 'circle', effect: 'balloons', photo: null, zoom: 100 };
     function buildTplGrid() { const grid = $('tplGrid'); grid.innerHTML = ''; Object.entries(templates).forEach(([key, t]) => { const el = document.createElement('div'); el.className = 'tpl-card' + (key === state.template ? ' active' : ''); el.innerHTML = `<div class="swatch" style="background:${t.bg}"></div>${t.name}`; el.onclick = () => { state.template = key; buildTplGrid(); renderPoster(); }; grid.appendChild(el); }); }
     function setupPosterChips(id, key) { document.querySelectorAll(`#${id} .chip`).forEach(c => { if (c.dataset.v === state[key]) c.classList.add('active'); c.onclick = () => { state[key] = c.dataset.v; document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.remove('active')); c.classList.add('active'); renderPoster(); }; }); }
-    function renderPoster() { const t = templates[state.template]; const poster = $('poster'); poster.style.background = t.bg; poster.style.color = t.text; poster.style.fontFamily = state.font; poster.style.textAlign = state.align; poster.style.alignItems = state.align === 'left' ? 'flex-start' : 'center'; $('pHeading').style.color = t.heading; $('pName').textContent = (state.name || 'NAME').toUpperCase(); $('pName').style.color = t.text; $('pSender').textContent = state.sender || 'Sender Name'; $('pMessage').textContent = state.message; if (state.age) { $('pAge').style.display = 'block'; $('pAge').textContent = 'Turning ' + state.age; } else { $('pAge').style.display = 'none'; } const frame = $('photoFrame'); frame.style.borderRadius = state.shape === 'circle' ? '50%' : state.shape === 'rounded' ? '32px' : '4px'; frame.style.borderColor = t.accent; if (state.photo) { $('pPhoto').src = state.photo; $('pPhoto').style.display = 'block'; $('pPhoto').style.transform = `scale(${state.zoom / 100})`; $('pPhotoPlaceholder').style.display = 'none'; } else { $('pPhoto').style.display = 'none'; $('pPhotoPlaceholder').style.display = 'flex'; } const layer = $('balloonLayer'); layer.innerHTML = ''; if (state.effect === 'balloons') { const emojis = ['🎈', '🎈', '🎈', '🎉', '✨']; for (let i = 0; i < 10; i++) { const b = document.createElement('div'); b.className = 'balloon'; b.textContent = emojis[i % emojis.length]; b.style.left = (i * 10 + Math.random() * 5) + '%'; b.style.animationDuration = (6 + Math.random() * 4) + 's'; b.style.animationDelay = (Math.random() * 5) + 's'; layer.appendChild(b); } } scalePoster(); }
+    function renderPoster() { const t = templates[state.template]; const poster = $('poster'); poster.style.background = t.bg; poster.style.color = t.text; poster.style.fontFamily = state.font; poster.style.textAlign = state.align; poster.style.alignItems = state.align === 'left' ? 'flex-start' : 'center'; $('pHeading').style.color = t.heading; $('pName').textContent = (state.name || 'NAME').toUpperCase(); $('pName').style.color = t.text; $('pSender').textContent = state.sender || 'Sender Name'; $('pMessage').textContent = state.message; if (state.age) { $('pAge').style.display = 'block'; $('pAge').textContent = 'Turning ' + state.age; } else { $('pAge').style.display = 'none'; } const frame = $('photoFrame'); frame.style.borderRadius = state.shape === 'circle' ? '50%' : state.shape === 'rounded' ? '32px' : '4px'; frame.style.borderColor = t.accent; if (state.photo) { $('pPhoto').src = state.photo; $('pPhoto').style.display = 'block'; $('pPhoto').style.transform = `scale(${state.zoom / 100})`; $('pPhotoPlaceholder').style.display = 'none'; } else { $('pPhoto').style.display = 'none'; $('pPhotoPlaceholder').style.display = 'flex'; } const layer = $('balloonLayer'); layer.innerHTML = ''; if (state.effect === 'balloons') { const palette = [['#fff0a8','#d4af37','#7f5c12'],['#f4d4dc','#c96a86','#7f3047'],['#d7f3ff','#70c8ef','#286c9b']]; for (let i = 0; i < 10; i++) { const b = document.createElement('div'); const c = palette[i % palette.length]; b.className = 'balloon-real'; b.style.left = (i * 10 + Math.random() * 5) + '%'; b.style.setProperty('--size', (42 + Math.random() * 22) + 'px'); b.style.setProperty('--balloon-hi', c[0]); b.style.setProperty('--balloon-mid', c[1]); b.style.setProperty('--balloon-low', c[2]); b.style.setProperty('--dur', (6 + Math.random() * 4) + 's'); b.style.setProperty('--delay', (Math.random() * 2) + 's'); b.style.setProperty('--sway', (12 + Math.random() * 22) * (Math.random() > .5 ? 1 : -1) + 'px'); layer.appendChild(b); } } scalePoster(); }
     function scalePoster() { const outer = $('posterOuter'); const scale = outer.clientWidth / 1080; $('poster').style.transform = `scale(${scale})`; }
     window.addEventListener('resize', scalePoster);
     $('nameInput').oninput = e => { state.name = e.target.value; renderPoster(); };
