@@ -935,6 +935,17 @@
       z-index: 20;
     }
 
+    .round-btn.pulse {
+      animation: btnPulse 1.1s ease-in-out infinite;
+      box-shadow: 0 0 0 rgba(212, 175, 55, .6);
+    }
+
+    @keyframes btnPulse {
+      0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, .55); }
+      70% { box-shadow: 0 0 0 12px rgba(212, 175, 55, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+    }
+
     .round-btn {
       background: rgba(255, 255, 255, .1);
       border: 1px solid rgba(255, 255, 255, .2);
@@ -1642,7 +1653,7 @@
                 class="btn btn-outline" id="wShareNative" style="flex:1;">Share</button><button class="btn btn-outline"
                 id="wCopyMsg" style="flex:1;">Copy Message</button></div>
             <div id="wShareSizeWarning" class="share-size-warning" style="margin-top:8px;display:none;"></div>
-            <div class="small" style="margin-top:8px;">Music stays available in your local preview, but it is <strong>not added to the share link</strong>. Photos and wish text are shared; this keeps the link small enough for messaging apps.</div>
+            <div class="small" id="wAudioShareNote" style="margin-top:8px;">If you added a song, it's uploaded to secure storage and <strong>will play for the recipient</strong> from the share link — only its small link is stored, so the link you share stays short.</div>
           </div>
         </div>
       </div>
@@ -1938,7 +1949,7 @@
     $('memoryPrev').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex - 1 + wish.photos.length) % wish.photos.length; updateMemoryPreview(); };
     $('memoryNext').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex + 1) % wish.photos.length; updateMemoryPreview(); };
 
-    buildThemeGrid(); buildFrameGrid(); updateMiniPreview();
+    buildThemeGrid(); buildFrameGrid(); updateMiniPreview(); updateAudioShareNote();
 
     /* ---- image compression + Vercel Blob storage ---- */
     function compressImage(file, maxDim, quality) {
@@ -2299,8 +2310,23 @@
       return (bytes / 1024 / 1024).toFixed(2) + ' MB';
     }
 
+    function updateAudioShareNote() {
+      const note = $('wAudioShareNote');
+      if (!note) return;
+      if (!wish.audio) {
+        note.innerHTML = 'No song added. Add one in step 5 if you\'d like music to play for the recipient.';
+      } else if (wish.audio.uploading) {
+        note.innerHTML = 'Uploading your song to secure storage — it will play for the recipient once this finishes.';
+      } else if (wish.audio.shareUrl) {
+        note.innerHTML = 'Your song is uploaded and <strong>will play for the recipient</strong> from the share link — only its small link is stored, so the link stays short.';
+      } else {
+        note.innerHTML = '<strong>The song could not be uploaded</strong>, so it will not play for the recipient. It still plays in your local preview. Remove it and try uploading again.';
+      }
+    }
+
     function updateShareSizeWarning() {
       generatedWishUrl = '';
+      updateAudioShareNote();
       const el = $('wShareSizeWarning');
       if (!el) return;
       const pending = (wish.photos || []).some(p => p && p.uploading) || (wish.mainPhoto && String(wish.mainPhoto).startsWith('data:')) || (wish.audio && wish.audio.uploading);
@@ -2415,29 +2441,39 @@
     };
 
     /* ================= CINEMATIC EXPERIENCE ================= */
-    let audioCtx = null, analyser = null, bgAudioSrcNode = null, muted = false;
+    let audioCtx = null, muted = false, vizRunning = false;
     const bgAudio = $('bgAudio');
-    function initVisualizer() {
-      try {
-        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-        // Browsers (esp. iOS Safari) create new AudioContexts in a 'suspended'
-        // state unless resumed inside a user-gesture. Once the media element is
-        // captured below, its sound plays ONLY through this context — so if it
-        // stays suspended, the song goes silent even though bgAudio.play() succeeded.
-        if (audioCtx.state === 'suspended') { audioCtx.resume().catch(() => {}); }
-        if (!bgAudioSrcNode) { bgAudioSrcNode = audioCtx.createMediaElementSource(bgAudio); analyser = audioCtx.createAnalyser(); analyser.fftSize = 32; bgAudioSrcNode.connect(analyser); analyser.connect(audioCtx.destination); }
-      } catch (e) { }
-    }
+    // NOTE: bgAudio is intentionally never routed through the Web Audio API
+    // (no createMediaElementSource). Doing that makes the element's sound
+    // play ONLY through the AudioContext — and on many phones (especially
+    // WhatsApp/Instagram's in-app browser, which is how most recipients
+    // open a shared link) that context stays 'suspended' even after
+    // resume(), so play() reports success but nothing is heard. Playing
+    // bgAudio natively avoids that failure mode entirely; the viz bars
+    // below are a lightweight fake animation, not real audio analysis.
     function drawViz() {
-      if (!analyser) return;
-      const data = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(data);
-      document.querySelectorAll('#vizBars i').forEach((bar, i) => { bar.style.height = Math.max(4, (data[i] || 0) / 255 * 22) + 'px'; });
+      if (!vizRunning) return;
+      document.querySelectorAll('#vizBars i').forEach((bar, i) => {
+        const t = Date.now() / 220 + i * 0.8;
+        bar.style.height = bgAudio.paused ? '4px' : Math.max(4, 12 + Math.sin(t) * 10) + 'px';
+      });
       requestAnimationFrame(drawViz);
     }
-    function setupVizBars() { const c = $('vizBars'); c.innerHTML = ''; for (let i = 0; i < 8; i++) { const b = document.createElement('i'); c.appendChild(b); } }
+    function setupVizBars() { const c = $('vizBars'); c.innerHTML = ''; for (let i = 0; i < 8; i++) { const b = document.createElement('i'); c.appendChild(b); } vizRunning = true; drawViz(); }
     function playChime() { try { const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();[523.25, 659.25, 783.99].forEach((f, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(ctx.destination); const t0 = ctx.currentTime + i * 0.18; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.12, t0 + 0.05); g.gain.linearRampToValueAtTime(0, t0 + 0.5); o.start(t0); o.stop(t0 + 0.5); }); } catch (e) { } }
-    $('muteToggle').onclick = () => { muted = !muted; bgAudio.muted = muted; $('muteToggle').textContent = muted ? '🔇' : '🔊'; };
+    $('muteToggle').onclick = () => {
+      // If the song never actually started (blocked by the browser), this
+      // direct tap is a fresh user gesture, so play() is allowed to succeed here.
+      if (bgAudio.paused && bgAudio.src) {
+        bgAudio.play().then(() => { $('muteToggle').textContent = '🔊'; $('muteToggle').classList.remove('pulse'); muted = false; bgAudio.muted = false; }).catch(() => {});
+        return;
+      }
+      muted = !muted; bgAudio.muted = muted; $('muteToggle').textContent = muted ? '🔇' : '🔊';
+    };
+    function showTapForSound() {
+      $('muteToggle').classList.add('pulse');
+      showToast('Tap the ♪ icon to turn on the music.');
+    }
 
     function intensityCount(base, intensity) {
       return intensity === 'low' ? Math.max(1, Math.round(base * 0.5))
@@ -2589,14 +2625,17 @@
           bgAudio.onloadedmetadata = () => { try { bgAudio.currentTime = Math.min(clipStart, Math.max(0, bgAudio.duration - .1)); } catch (_) {} };
           bgAudio.ontimeupdate = () => { if (clipEnd && bgAudio.currentTime >= clipEnd) { try { bgAudio.currentTime = clipStart; } catch (_) {} } };
           bgAudio.onerror = () => { $('muteToggle').textContent = '♪'; showToast('The birthday music could not be played, but the wish will continue.'); };
-          // Set up (and resume) the Web Audio graph synchronously, inside this
-          // click handler, so the browser treats AudioContext.resume() as tied
-          // to the user's tap/click — otherwise it can stay 'suspended' and the
-          // song will silently fail to play once it's routed through it below.
-          initVisualizer();
           const p = bgAudio.play();
-          if (p && typeof p.then === 'function') p.then(() => { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {}); drawViz(); }).catch(() => { $('muteToggle').textContent = '♪'; });
-          $('muteToggle').textContent = '🔊';
+          if (p && typeof p.then === 'function') {
+            p.then(() => { $('muteToggle').textContent = '🔊'; $('muteToggle').classList.remove('pulse'); }).catch(() => {
+              // Some in-app browsers (WhatsApp/Instagram/Messenger webviews) block
+              // this first play() call even from a real tap. Show an explicit
+              // "tap for sound" control so the recipient can start it themselves —
+              // this second, direct tap always satisfies the browser's autoplay rule.
+              $('muteToggle').textContent = '♪';
+              showTapForSound();
+            });
+          } else { $('muteToggle').textContent = '🔊'; }
         } catch (_) { playChime(); }
       }
 
