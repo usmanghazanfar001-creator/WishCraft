@@ -2420,6 +2420,11 @@
     function initVisualizer() {
       try {
         audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        // Browsers (esp. iOS Safari) create new AudioContexts in a 'suspended'
+        // state unless resumed inside a user-gesture. Once the media element is
+        // captured below, its sound plays ONLY through this context — so if it
+        // stays suspended, the song goes silent even though bgAudio.play() succeeded.
+        if (audioCtx.state === 'suspended') { audioCtx.resume().catch(() => {}); }
         if (!bgAudioSrcNode) { bgAudioSrcNode = audioCtx.createMediaElementSource(bgAudio); analyser = audioCtx.createAnalyser(); analyser.fftSize = 32; bgAudioSrcNode.connect(analyser); analyser.connect(audioCtx.destination); }
       } catch (e) { }
     }
@@ -2584,8 +2589,13 @@
           bgAudio.onloadedmetadata = () => { try { bgAudio.currentTime = Math.min(clipStart, Math.max(0, bgAudio.duration - .1)); } catch (_) {} };
           bgAudio.ontimeupdate = () => { if (clipEnd && bgAudio.currentTime >= clipEnd) { try { bgAudio.currentTime = clipStart; } catch (_) {} } };
           bgAudio.onerror = () => { $('muteToggle').textContent = '♪'; showToast('The birthday music could not be played, but the wish will continue.'); };
+          // Set up (and resume) the Web Audio graph synchronously, inside this
+          // click handler, so the browser treats AudioContext.resume() as tied
+          // to the user's tap/click — otherwise it can stay 'suspended' and the
+          // song will silently fail to play once it's routed through it below.
+          initVisualizer();
           const p = bgAudio.play();
-          if (p && typeof p.then === 'function') p.then(() => { initVisualizer(); drawViz(); }).catch(() => { $('muteToggle').textContent = '♪'; });
+          if (p && typeof p.then === 'function') p.then(() => { if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {}); drawViz(); }).catch(() => { $('muteToggle').textContent = '♪'; });
           $('muteToggle').textContent = '🔊';
         } catch (_) { playChime(); }
       }
