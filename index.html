@@ -1706,7 +1706,7 @@
           <h3>Background Music</h3>
           <div class="upload-box" id="posterAudioBox">
             <input type="file" id="posterAudioInput" accept="audio/*" style="display:none;">
-            <div id="posterAudioHint">🎵 Add music for your animated birthday video<br><span class="small">MP3, WAV, M4A, OGG • max 10 MB</span></div>
+            <div id="posterAudioHint">🎵 Add music for your animated birthday video<br><span class="small">MP3, WAV, M4A, OGG • max 4 MB for shareable music</span></div>
           </div>
           <div id="posterAudioControls" style="display:none;margin-top:12px;">
             <div class="small" id="posterAudioName" style="margin-bottom:8px;"></div>
@@ -2733,7 +2733,7 @@
     /* ================= POSTER GENERATOR (unchanged) ================= */
     const templates = { gold: { name: 'Elegant Gold', bg: 'linear-gradient(160deg,#1a1400,#3a2b00 60%,#1a1400)', text: '#f4e4a6', accent: '#d4af37', heading: '#f4e4a6' }, black: { name: 'Luxury Black', bg: 'linear-gradient(160deg,#000000,#1c1c1c 60%,#000000)', text: '#ffffff', accent: '#c9a227', heading: '#ffffff' }, colorful: { name: 'Colorful', bg: 'linear-gradient(135deg,#ff5f6d,#ffc371,#845ec2)', text: '#ffffff', accent: '#ffffff', heading: '#ffffff' }, minimal: { name: 'Minimal White', bg: '#ffffff', text: '#1a1a1a', accent: '#c9a227', heading: '#1a1a1a' }, pink: { name: 'Romantic Pink', bg: 'linear-gradient(160deg,#ffdde1,#ee9ca7)', text: '#5a2436', accent: '#c14b6a', heading: '#8a2e46' } };
     const presets = { default: "Wishing you a very Happy Birthday filled with happiness, success, love and beautiful memories.", professional: "Wishing you a wonderful birthday filled with success, happiness and new opportunities.", friendly: "Happy Birthday! May your day be full of laughter, happiness and unforgettable memories.", heartfelt: "May this new year of your life bring you endless happiness, good health and beautiful moments.", short: "Happy Birthday! Wishing you happiness, success and endless smiles." };
-    let state = { template: 'gold', name: '', age: '', message: presets.default, sender: '', align: 'center', font: "Georgia, serif", shape: 'circle', effect: 'balloons', animationStyle: 'float', photo: null, zoom: 100, audioFile: null, audioUrl: null, audioName: '', audioVolume: 0.7 };
+    let state = { template: 'gold', name: '', age: '', message: presets.default, sender: '', align: 'center', font: "Georgia, serif", shape: 'circle', effect: 'balloons', animationStyle: 'float', photo: null, zoom: 100, audioFile: null, audioUrl: null, audioShareUrl: null, audioName: '', audioVolume: 0.7, audioUploading: false };
     function buildTplGrid() { const grid = $('tplGrid'); grid.innerHTML = ''; Object.entries(templates).forEach(([key, t]) => { const el = document.createElement('div'); el.className = 'tpl-card' + (key === state.template ? ' active' : ''); el.innerHTML = `<div class="swatch" style="background:${t.bg}"></div>${t.name}`; el.onclick = () => { state.template = key; buildTplGrid(); renderPoster(); }; grid.appendChild(el); }); }
     function setupPosterChips(id, key) { document.querySelectorAll(`#${id} .chip`).forEach(c => { if (c.dataset.v === state[key]) c.classList.add('active'); c.onclick = () => { state[key] = c.dataset.v; document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.remove('active')); c.classList.add('active'); renderPoster(); }; }); }
     function renderPoster() { const t = templates[state.template]; const poster = $('poster'); poster.style.background = t.bg; poster.style.color = t.text; poster.style.fontFamily = state.font; poster.style.textAlign = state.align; poster.style.alignItems = state.align === 'left' ? 'flex-start' : 'center'; $('pHeading').style.color = t.heading; $('pName').textContent = (state.name || 'NAME').toUpperCase(); $('pName').style.color = t.text; $('pSender').textContent = state.sender || 'Sender Name'; $('pMessage').textContent = state.message; if (state.age) { $('pAge').style.display = 'block'; $('pAge').textContent = 'Turning ' + state.age; } else { $('pAge').style.display = 'none'; } const frame = $('photoFrame'); frame.style.borderRadius = state.shape === 'circle' ? '50%' : state.shape === 'rounded' ? '32px' : '4px'; frame.style.borderColor = t.accent; if (state.photo) { $('pPhoto').src = state.photo; $('pPhoto').style.display = 'block'; $('pPhoto').style.transform = `scale(${state.zoom / 100})`; $('pPhotoPlaceholder').style.display = 'none'; } else { $('pPhoto').style.display = 'none'; $('pPhotoPlaceholder').style.display = 'flex'; } const layer = $('balloonLayer'); layer.innerHTML = '';
@@ -2776,18 +2776,47 @@
     const posterAudioInput = $('posterAudioInput'), posterAudioBox = $('posterAudioBox');
     function clearPosterAudio(){
       if(state.audioUrl){ URL.revokeObjectURL(state.audioUrl); }
-      state.audioFile=null; state.audioUrl=null; state.audioName='';
+      state.audioFile=null; state.audioUrl=null; state.audioShareUrl=null; state.audioName=''; state.audioUploading=false;
       posterAudioInput.value=''; $('posterAudioControls').style.display='none';
-      $('posterAudioHint').innerHTML='🎵 Add music for your animated birthday video<br><span class="small">MP3, WAV, M4A, OGG • max 10 MB</span>';
+      $('posterAudioHint').innerHTML='🎵 Add music for your animated birthday video<br><span class="small">MP3, WAV, M4A, OGG • max 4 MB for shareable music</span>';
     }
-    function handlePosterAudio(file){
+    async function uploadPosterAudioToBlob(file){
+      state.audioUploading = true;
+      $('posterAudioStatus').textContent = 'Uploading music to Vercel Blob…';
+      try {
+        const res = await fetch('/api/upload-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'X-Filename': encodeURIComponent(file.name)
+          },
+          body: file
+        });
+        const data = await res.json().catch(() => ({}));
+        if(!res.ok || !data.url) throw new Error(data.error || 'Vercel Blob upload failed.');
+        state.audioShareUrl = data.url;
+        $('posterAudioStatus').textContent = '✓ Music uploaded to Vercel Blob and ready for sharing.';
+        showToast('Music uploaded — it can be shared with the poster.');
+      } catch(err) {
+        console.error(err);
+        state.audioShareUrl = null;
+        $('posterAudioStatus').textContent = 'Local preview only — Blob upload failed.';
+        showToast(err.message || 'Could not upload music. Connect Vercel Blob and redeploy.');
+      } finally {
+        state.audioUploading = false;
+      }
+    }
+
+    async function handlePosterAudio(file){
       if(!file || !file.type.startsWith('audio/')){ showToast('Please choose a valid audio file.'); return; }
-      if(file.size > 10*1024*1024){ showToast('Music file must be 10 MB or smaller.'); return; }
+      if(file.size > 4*1024*1024){ showToast('For shareable music, choose an audio file under 4 MB.'); return; }
       if(state.audioUrl) URL.revokeObjectURL(state.audioUrl);
-      state.audioFile=file; state.audioUrl=URL.createObjectURL(file); state.audioName=file.name;
+      state.audioFile=file; state.audioUrl=URL.createObjectURL(file); state.audioShareUrl=null; state.audioName=file.name;
       $('posterAudioControls').style.display='block'; $('posterAudioName').textContent='✓ '+file.name;
-      $('posterAudioHint').innerHTML='✓ Music added — click to change';
-      $('posterAudioStatus').textContent='Music will be included in the exported video.';
+      $('posterAudioHint').innerHTML='✓ Music added — uploading for sharing…';
+      $('posterAudioStatus').textContent='Preparing music upload…';
+      await uploadPosterAudioToBlob(file);
+      $('posterAudioHint').innerHTML = state.audioShareUrl ? '✓ Music added & shareable — click to change' : '✓ Music added for local preview — click to change';
     }
     posterAudioBox.onclick = e => { if(e.target !== posterAudioInput) posterAudioInput.click(); };
     posterAudioInput.onchange = e => handlePosterAudio(e.target.files[0]);
