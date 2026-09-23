@@ -453,6 +453,18 @@
       border-radius: 6px;
     }
 
+    .memory-preview { margin-top:14px; border-radius:16px; overflow:hidden; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); padding:10px; }
+    .memory-preview-stage { position:relative; aspect-ratio:16/10; border-radius:12px; overflow:hidden; background:rgba(0,0,0,.25); }
+    .memory-preview-stage img { width:100%; height:100%; object-fit:cover; display:block; }
+    .memory-preview-nav { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:9px; }
+    .memory-preview-nav .btn { padding:7px 11px; min-width:74px; }
+    .memory-preview-count { font-size:.78rem; opacity:.75; text-align:center; flex:1; }
+    .story-nav { position:absolute; inset:0; z-index:5; pointer-events:none; }
+    .story-nav button { pointer-events:auto; position:absolute; top:50%; transform:translateY(-50%); width:44px; height:44px; border:1px solid rgba(255,255,255,.25); border-radius:50%; background:rgba(0,0,0,.38); color:#fff; backdrop-filter:blur(8px); cursor:pointer; font-size:1.2rem; transition:.2s ease; }
+    .story-nav button:hover { background:rgba(0,0,0,.58); transform:translateY(-50%) scale(1.06); }
+    .story-nav .prev { left:12px; } .story-nav .next { right:12px; }
+    .story-index { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:6; padding:5px 10px; border-radius:999px; background:rgba(0,0,0,.42); font-size:.72rem; backdrop-filter:blur(8px); pointer-events:none; }
+
     /* audio */
     .audio-row {
       display: flex;
@@ -1232,7 +1244,20 @@
       font-size: .88rem;
       font-style: italic;
     }
-  </style>
+
+    .share-size-warning {
+      padding: 10px 12px;
+      border: 1px solid rgba(202,169,77,.35);
+      background: rgba(202,169,77,.08);
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text);
+    }
+    .share-size-warning.danger {
+      border-color: rgba(220,70,70,.45);
+      background: rgba(220,70,70,.08);
+    }
 </head>
 
 <body>
@@ -1307,6 +1332,15 @@
             <div>+ Add Photos</div>
           </div>
           <div class="mem-grid" id="memGrid"></div>
+          <div class="memory-preview" id="memoryPreview" style="display:none;">
+            <div class="small" style="margin-bottom:8px;">Memory preview</div>
+            <div class="memory-preview-stage"><img id="memoryPreviewImg" src="" alt="Memory preview"></div>
+            <div class="memory-preview-nav">
+              <button class="btn btn-outline" id="memoryPrev" type="button">‹ Previous</button>
+              <div class="memory-preview-count" id="memoryPreviewCount">1 / 1</div>
+              <button class="btn btn-outline" id="memoryNext" type="button">Next ›</button>
+            </div>
+          </div>
           <label style="margin-top:12px;">Transition style</label>
           <div class="chip-row" id="transChips">
             <div class="chip active" data-v="fade">Fade</div>
@@ -1395,8 +1429,8 @@
             <div class="link-box"><button class="btn btn-gold" id="wShareWA" style="flex:1;">💬 WhatsApp</button><button
                 class="btn btn-outline" id="wShareNative" style="flex:1;">Share</button><button class="btn btn-outline"
                 id="wCopyMsg" style="flex:1;">Copy Message</button></div>
-            <div class="small" style="margin-top:8px;">WishCraft has no backend — the whole story (photos and song) is
-              encoded straight into this link, so it opens anywhere without an account.</div>
+            <div id="wShareSizeWarning" class="share-size-warning" style="margin-top:8px;display:none;"></div>
+            <div class="small" style="margin-top:8px;">Music stays available in your local preview, but it is <strong>not added to the share link</strong>. Photos and wish text are shared; this keeps the link small enough for messaging apps.</div>
           </div>
         </div>
       </div>
@@ -1596,7 +1630,7 @@
     setupSwitch('wSurpriseToggle', v => { wish.surprise = v; updateMiniPreview(); });
     setupSwitch('wGiftToggle', v => { wish.giftBox = v; });
 
-    $('wName').oninput = e => { wish.name = e.target.value; updateMiniPreview(); };
+    $('wName').oninput = e => { wish.name = e.target.value; generatedWishUrl = ''; updateMiniPreview(); updateShareSizeWarning(); };
     $('wAge').oninput = e => { wish.age = e.target.value; };
     $('wHeading').oninput = e => { wish.heading = e.target.value || 'To Someone Special'; };
     $('wMessage').oninput = e => { wish.message = e.target.value; updateMiniPreview(); };
@@ -1604,15 +1638,29 @@
     $('wRelationship').onchange = e => { wish.relationship = e.target.value; };
     $('wDuration').onchange = e => { wish.photoDuration = +e.target.value; };
 
+    let memoryPreviewIndex = 0;
+    function updateMemoryPreview() {
+      const box = $('memoryPreview'), img = $('memoryPreviewImg'), count = $('memoryPreviewCount');
+      const total = wish.photos.length;
+      if (!total) { box.style.display = 'none'; return; }
+      memoryPreviewIndex = Math.max(0, Math.min(memoryPreviewIndex, total - 1));
+      box.style.display = 'block'; img.src = wish.photos[memoryPreviewIndex].url;
+      count.textContent = `${memoryPreviewIndex + 1} / ${total}`;
+      $('memoryPrev').disabled = total < 2; $('memoryNext').disabled = total < 2;
+    }
     function updateMiniPreview() {
       const t = themes[wish.theme];
       $('wMiniBg').style.background = t.bg; $('wMiniBg').style.color = t.text;
       $('wMiniName').textContent = wish.surprise ? '???' : (wish.name || 'NAME').toUpperCase();
       $('wMiniMsg').textContent = wish.message;
-      if (wish.mainPhoto) { $('wMiniPhoto').innerHTML = `<img src="${wish.mainPhoto}" style="width:100%;height:100%;object-fit:cover;">`; }
+      if (wish.mainPhoto) $('wMiniPhoto').innerHTML = `<img src="${wish.mainPhoto}" style="width:100%;height:100%;object-fit:cover;">`;
       $('wMiniPhoto').style.borderRadius = wish.shape === 'circle' ? '50%' : wish.shape === 'polaroid' ? '4px' : '16px';
       $('wMiniMemCount').textContent = wish.photos.length ? `${wish.photos.length} memory photo${wish.photos.length > 1 ? 's' : ''} in the story` : '';
+      updateMemoryPreview();
     }
+    $('memoryPrev').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex - 1 + wish.photos.length) % wish.photos.length; updateMemoryPreview(); };
+    $('memoryNext').onclick = e => { e.stopPropagation(); if (!wish.photos.length) return; memoryPreviewIndex = (memoryPreviewIndex + 1) % wish.photos.length; updateMemoryPreview(); };
+
     buildThemeGrid(); updateMiniPreview();
 
     /* ---- image compression helper ---- */
@@ -1635,7 +1683,7 @@
     wPhotoInput.onchange = e => e.target.files[0] && compressImage(e.target.files[0], 500, 0.72, d => { wish.mainPhoto = d; $('wUploadHint').innerHTML = '✅ Photo added — click to change'; $('wRemovePhoto').style.display = 'block'; updateMiniPreview(); });
     wUploadBox.ondragover = e => { e.preventDefault(); wUploadBox.classList.add('drag'); };
     wUploadBox.ondragleave = () => wUploadBox.classList.remove('drag');
-    wUploadBox.ondrop = e => { e.preventDefault(); wUploadBox.classList.remove('drag'); const f = e.dataTransfer.files[0]; f && compressImage(f, 500, 0.72, d => { wish.mainPhoto = d; $('wUploadHint').innerHTML = '✅ Photo added'; $('wRemovePhoto').style.display = 'block'; updateMiniPreview(); }); };
+    wUploadBox.ondrop = e => { e.preventDefault(); wUploadBox.classList.remove('drag'); const f = e.dataTransfer.files[0]; f && compressImage(f, 500, 0.72, d => { wish.mainPhoto = d; $('wUploadHint').innerHTML = '✅ Photo added'; $('wRemovePhoto').style.display = 'block'; updateMiniPreview(); updateShareSizeWarning(); }); };
     $('wRemovePhoto').onclick = () => { wish.mainPhoto = null; wPhotoInput.value = ''; $('wUploadHint').innerHTML = '📷 Click or drag & drop the hero photo<br><span class="small">Auto-compressed for sharing</span>'; $('wRemovePhoto').style.display = 'none'; updateMiniPreview(); };
 
     /* memory photos (up to 10) */
@@ -1647,9 +1695,9 @@
         el.innerHTML = `<div class="mem-item"><img src="${p.url}"><div class="mem-actions">
       <button data-a="up" title="Move left">◀</button><button data-a="down" title="Move right">▶</button><button data-a="del" title="Delete">✕</button>
     </div></div><input class="mem-caption" placeholder="Caption (optional)" value="${p.caption ? p.caption.replace(/"/g, '&quot;') : ''}">`;
-        el.querySelector('[data-a="del"]').onclick = () => { wish.photos.splice(i, 1); renderMemGrid(); updateMiniPreview(); };
-        el.querySelector('[data-a="up"]').onclick = () => { if (i > 0) { [wish.photos[i - 1], wish.photos[i]] = [wish.photos[i], wish.photos[i - 1]]; renderMemGrid(); } };
-        el.querySelector('[data-a="down"]').onclick = () => { if (i < wish.photos.length - 1) { [wish.photos[i + 1], wish.photos[i]] = [wish.photos[i], wish.photos[i + 1]]; renderMemGrid(); } };
+        el.querySelector('[data-a="del"]').onclick = () => { wish.photos.splice(i, 1); memoryPreviewIndex = Math.min(memoryPreviewIndex, Math.max(0, wish.photos.length - 1)); renderMemGrid(); updateMiniPreview(); };
+        el.querySelector('[data-a="up"]').onclick = () => { if (i > 0) { [wish.photos[i - 1], wish.photos[i]] = [wish.photos[i], wish.photos[i - 1]]; memoryPreviewIndex = i - 1; renderMemGrid(); updateMemoryPreview(); } };
+        el.querySelector('[data-a="down"]').onclick = () => { if (i < wish.photos.length - 1) { [wish.photos[i + 1], wish.photos[i]] = [wish.photos[i], wish.photos[i + 1]]; memoryPreviewIndex = i + 1; renderMemGrid(); updateMemoryPreview(); } };
         el.querySelector('.mem-caption').oninput = e => { wish.photos[i].caption = e.target.value; };
         grid.appendChild(el);
       });
@@ -1664,7 +1712,7 @@
       if (room <= 0) { showToast('Maximum 10 memory photos reached'); return; }
       [...files].slice(0, room).forEach(f => {
         if (!f.type.startsWith('image/')) return;
-        compressImage(f, 480, 0.68, d => { wish.photos.push({ url: d, caption: '' }); renderMemGrid(); updateMiniPreview(); });
+        compressImage(f, 480, 0.68, d => { wish.photos.push({ url: d, caption: '' }); renderMemGrid(); updateMiniPreview(); updateShareSizeWarning(); });
       });
     }
 
@@ -1677,10 +1725,11 @@
       const reader = new FileReader();
       reader.onload = ev => {
         wish.audio = { name: f.name, data: ev.target.result, volume: 0.7 };
+        updateShareSizeWarning();
         $('audioPanel').style.display = 'block'; $('audioName').textContent = f.name;
         $('audioSizeWarn').textContent = f.size > 600 * 1024
-          ? '⚠ This song is fairly large — the shareable link will be long. Some apps may trim very long links.'
-          : '';
+          ? '✓ Music is kept out of the share link, so it will not make your WhatsApp message huge. It still plays in your local preview.'
+          : '✓ Music is local-only for sharing; it is not embedded in the share URL.';
         const tmp = new Audio(ev.target.result);
         function finalizeDuration(dur) {
           dur = isFinite(dur) && dur > 0 ? dur : 0;
@@ -1731,14 +1780,12 @@
       e.target.value = v; if (wish.audio) wish.audio.end = v; $('audioEndLabel').textContent = formatTime(v);
     };
     $('audioVolume').oninput = e => { wish.audio && (wish.audio.volume = +e.target.value); if (previewAudioEl) previewAudioEl.volume = +e.target.value; };
-    $('audioRemoveBtn').onclick = () => { wish.audio = null; audioInput.value = ''; $('audioPanel').style.display = 'none'; if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl = null; previewPlaying = false; } };
+    $('audioRemoveBtn').onclick = () => { wish.audio = null; updateShareSizeWarning(); audioInput.value = ''; $('audioPanel').style.display = 'none'; if (previewAudioEl) { previewAudioEl.pause(); previewAudioEl = null; previewPlaying = false; } };
 
     /* ================= SHARE / ENCODE =================
-       Binary media (photos/audio) must never be placed in the URL.
-       They made the old WhatsApp link enormous and unreliable.
-       When /api/wish is deployed, the wish is stored in Vercel Blob and
-       the shared URL contains only a short pointer. Text-only wishes can
-       still use a local fallback URL.
+       Keep music local to the creator's preview. It is deliberately removed
+       from the share payload so the URL stays compact and WhatsApp-friendly.
+       Photos are compressed before upload and remain in the self-contained URL.
     */
     function encodeWish(w) {
       return btoa(unescape(encodeURIComponent(JSON.stringify(w))))
@@ -1752,62 +1799,71 @@
       } catch (e) { return null; }
     }
 
-    function hasBinaryMedia(w) {
-      return !!(w.mainPhoto || (w.photos && w.photos.length) || (w.audio && w.audio.data));
+    function getShareableWish(w) {
+      // Deep-clone so the creator's in-app preview keeps its original song.
+      const copy = JSON.parse(JSON.stringify(w));
+      copy.audio = null;
+      return copy;
     }
 
-    function localLinkFor(w) {
-      return location.origin + location.pathname + '#wish=' + encodeWish(w);
+    function getShareUrlCandidate(w) {
+      return localLinkFor(getShareableWish(w));
     }
 
-    let generatedWishUrl = '';
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+    }
 
-    async function buildLink() {
+    function updateShareSizeWarning() {
+      generatedWishUrl = '';
+      const el = $('wShareSizeWarning');
+      if (!el) return;
+      const url = getShareUrlCandidate(wish);
+      const chars = url.length;
+      const photoCount = (wish.mainPhoto ? 1 : 0) + (wish.photos || []).length;
+      const hasSong = !!(wish.audio && wish.audio.data);
+      const encodedKB = new Blob([url]).size / 1024;
+
+      if (chars > 18000) {
+        el.className = 'share-size-warning danger';
+        el.style.display = 'block';
+        el.innerHTML = `<strong>Link is very large:</strong> ${formatBytes(encodedKB * 1024)} (${chars.toLocaleString()} characters). Remove a photo or use fewer/lower-resolution photos before sharing.`;
+        return;
+      }
+
+      if (hasSong || chars > 9000) {
+        el.className = 'share-size-warning';
+        el.style.display = 'block';
+        const musicNote = hasSong ? ' Your song is kept out of the link, so it will not cause a huge WhatsApp message.' : '';
+        el.innerHTML = `<strong>Share size:</strong> about ${formatBytes(encodedKB * 1024)} (${chars.toLocaleString()} characters)${photoCount ? ` from ${photoCount} photo${photoCount === 1 ? '' : 's'}.` : '.'}${musicNote}`;
+        return;
+      }
+
+      el.style.display = 'none';
+    }
+
+    function buildLink() {
       if (!wish.name.trim()) {
         showToast("Please enter the birthday person's name");
         $('wName').focus();
         return null;
       }
 
-      if (!hasBinaryMedia(wish)) {
-        const url = localLinkFor(wish);
-        generatedWishUrl = url;
-        return url;
-      }
+      const shareWish = getShareableWish(wish);
+      const url = localLinkFor(shareWish);
+      generatedWishUrl = url;
 
-      // Media requires server-side storage. This prevents base64 photos/audio
-      // from being pasted into WhatsApp as a multi-megabyte URL.
-      try {
-        const payload = JSON.stringify(wish);
-        if (new Blob([payload]).size > 3900000) {
-          showToast('Your media is too large for one share. Reduce photos/audio and try again.');
-          return null;
-        }
-
-        const res = await fetch('/api/wish', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: payload
-        });
-
-        if (!res.ok) {
-          const detail = await res.text().catch(() => '');
-          throw new Error(detail || `HTTP ${res.status}`);
-        }
-
-        const data = await res.json();
-        if (!data.url) throw new Error('Storage URL missing');
-        generatedWishUrl = location.origin + location.pathname + '#wishurl=' + encodeURIComponent(data.url);
-        return generatedWishUrl;
-      } catch (err) {
-        console.error('Wish storage error:', err);
-        showToast('Media sharing needs the Vercel /api/wish storage function.');
+      if (url.length > 18000) {
+        showToast('The share link is too large. Remove a photo or use fewer/lower-resolution photos.');
         return null;
       }
+      return url;
     }
 
     async function getShareUrl() {
-      return generatedWishUrl || await buildLink();
+      return buildLink();
     }
 
     $('wGenerateBtn').onclick = async () => {
@@ -1820,7 +1876,7 @@
         if (!url) return;
         $('wLinkOutput').value = url;
         $('wLinkResult').style.display = 'block';
-        showToast('Birthday wish link is ready.');
+        showToast(wish.audio ? 'Wish link ready — music stays local and is excluded from the link.' : 'Birthday wish link is ready.');
       } finally {
         btn.disabled = false;
         btn.innerHTML = old;
@@ -2069,7 +2125,8 @@
       else { runHero(w, t); }
     }
     function runStory(w, t, idx) {
-      if (idx >= w.photos.length) { runHero(w, t); return; }
+      if (!w.photos || !w.photos.length) { runHero(w, t); return; }
+      idx = Math.max(0, Math.min(idx, w.photos.length - 1));
       setStage('stageStory');
       const stage = $('storyStage'); stage.innerHTML = '';
       const slide = document.createElement('div');
@@ -2077,14 +2134,17 @@
       slide.style.setProperty('--dur', w.photoDuration + 's');
       slide.innerHTML = `<img src="${w.photos[idx].url}">${w.photos[idx].caption ? `<div class="story-caption">${w.photos[idx].caption}</div>` : ''}`;
       stage.appendChild(slide);
+      const nav = document.createElement('div'); nav.className = 'story-nav';
+      nav.innerHTML = `<button class="prev" type="button" aria-label="Previous memory">‹</button><button class="next" type="button" aria-label="Next memory">›</button><div class="story-index">${idx + 1} / ${w.photos.length}</div>`;
+      stage.appendChild(nav);
       requestAnimationFrame(() => slide.classList.add('active'));
-
       const prog = $('storyProgress'); prog.innerHTML = '';
-      w.photos.forEach((_, i) => { const seg = document.createElement('div'); seg.className = 'seg' + (i < idx ? ' done' : i === idx ? ' current' : ''); if (i === idx) seg.querySelector?.(''); if (i === idx) { const bar = document.createElement('i'); bar.style.animationDuration = w.photoDuration + 's'; seg.appendChild(bar); } else { seg.innerHTML = '<i></i>'; } prog.appendChild(seg); });
-
+      w.photos.forEach((_, i) => { const seg=document.createElement('div'); seg.className='seg'+(i<idx?' done':i===idx?' current':''); const bar=document.createElement('i'); if(i===idx) bar.style.animationDuration=w.photoDuration+'s'; else if(i<idx) bar.style.width='100%'; seg.appendChild(bar); prog.appendChild(seg); });
       clearTimeout(storyTimer);
-      const advance = () => { clearTimeout(storyTimer); runStory(w, t, idx + 1); };
-      $('stageStory').onclick = advance;
+      const advance = () => { clearTimeout(storyTimer); runStory(w,t,idx+1); };
+      nav.querySelector('.prev').onclick = e => { e.stopPropagation(); clearTimeout(storyTimer); runStory(w,t,idx-1<0?w.photos.length-1:idx-1); };
+      nav.querySelector('.next').onclick = e => { e.stopPropagation(); advance(); };
+      $('stageStory').onclick = e => { if (e.target.closest('.story-nav')) return; advance(); };
       storyTimer = setTimeout(advance, w.photoDuration * 1000);
     }
 
