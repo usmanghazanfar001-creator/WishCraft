@@ -22,3 +22,12 @@ Old `#wish=` / `#wishurl=` links still open.
 - `api/upload-image.js`, `api/upload-audio.js` – ≤4 MB fallback if direct upload is unavailable
 
 Note: the browser loads the Blob client from `esm.sh`; if it is blocked, files ≤4 MB still use the fallback.
+
+## Poster → Video / GIF
+Poster tab → **Download Video** (6‑second looping MP4, or WebM on browsers without MP4 recording)
+or **Download GIF** (480 px wide, loops forever). Runs entirely in the browser; the GIF encoder
+loads from cdnjs on first use.
+
+## Poster effects
+Effects: Balloons, Confetti, Sparkles, Hearts, None (slow zoom). Use **▶ Preview Animation** to watch the
+looping animation full-screen before exporting it as Video or GIF.
