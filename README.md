@@ -23,3 +23,10 @@ All new options are **off by default** — existing wishes and old share links p
 **Fixes**: the memory-photo story now continues to the reveal (it looped on the last photo); effect pieces no longer squash the hero photo; "Create Your Own" works for recipients; captions/sender are HTML-escaped.
 
 No backend changes: new fields are plain JSON stored by the existing `/api/wish`.
+
+
+## Site structure (SEO / AdSense update)
+- `index.html` – content landing page (ads allowed here). Old `#wish=` / `?w=` links opened here redirect to the viewer.
+- `create.html` – wish creator + poster tool and the recipient viewer (served at `/create`; `/?w=ID` is rewritten to it by `vercel.json`). No ads here.
+- `guides/*.html`, `faq.html`, `about.html`, `contact.html`, `privacy.html`, `terms.html` – content pages.
+- Content pages are generated: edit `_src/*.py`, then run `WISHCRAFT_CONTACT_EMAIL=you@example.com python3 _src/build.py` (also regenerates `sitemap.xml` and `robots.txt`).
