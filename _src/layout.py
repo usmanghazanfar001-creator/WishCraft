@@ -29,7 +29,14 @@ def page(path, title, desc, body, *, trail=None, schema=None, ads=True, og_type=
         for i, (p, n) in enumerate(trail):
             parts.append(esc(n) if i == len(trail) - 1 else '<a href="%s">%s</a>' % (p, esc(n)))
         crumb_html = '<nav class="crumbs" aria-label="Breadcrumb">%s</nav>' % " › ".join(parts)
-    adsense = ('<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%s" crossorigin="anonymous"></script>\n' % ADSENSE) if ads else ""
+    adsense = ("""<script>
+/* Load AdSense after the page has rendered so ads never block first paint (Core Web Vitals). */
+(function(){var d=false;function go(){if(d)return;d=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%s';document.head.appendChild(s);}
+function later(){('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:2500}):setTimeout(go,1500);}
+if(document.readyState==='complete')later();else addEventListener('load',later);
+['scroll','pointerdown','keydown','touchstart'].forEach(function(e){addEventListener(e,go,{once:true,passive:true});});})();
+</script>
+""" % ADSENSE) if ads else ""
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -51,6 +58,7 @@ def page(path, title, desc, body, *, trail=None, schema=None, ads=True, og_type=
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/favicon.png">
 <link rel="stylesheet" href="/assets/site.css">
+{"<link rel=\"preconnect\" href=\"https://pagead2.googlesyndication.com\" crossorigin>" if ads else ""}
 {jsonld(ld)}{adsense}</head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
