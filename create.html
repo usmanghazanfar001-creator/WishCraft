@@ -3657,6 +3657,10 @@
       document.addEventListener('click', function () { setTimeout(syncSwitches, 0); });
     })();
   </script>
+  <script>
+    /* /create?tab=poster opens the poster generator directly (used by the tool landing pages). */
+    (function () { try { if (new URLSearchParams(location.search).get('tab') === 'poster' && !/[?&]w=/.test(location.search)) { var t = document.querySelector('.mode-tab[data-mode="poster"]'); if (t) t.click(); } } catch (e) { } })();
+  </script>
 </body>
 
 </html>

@@ -9,6 +9,7 @@ from guides_b import G as GB
 from wishes_a import W as WA
 from wishes_b import W as WB
 from wishes_c import W as WC
+from tools import T as TOOLS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUIDES = {}; GUIDES.update(GA); GUIDES.update(GB)
@@ -261,6 +262,109 @@ write("/wishes", page("/wishes", "Birthday Wishes & Messages for Friends, Family
     schema=[{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Birthday Wishes", "url": SITE + "/wishes",
              "hasPart": [{"@type": "Article", "headline": WISH[s_]["title"], "url": SITE + "/wishes/" + s_} for s_ in WORDER]}]), prio="0.9")
 
+
+# ---------------- Tool landing pages (one search intent each)
+for slug, d in TOOLS.items():
+    path = "/" + slug
+    secs = "".join("<h2>%s</h2>%s" % (esc(h), html_) for h, html_ in d["sections"])
+    faq = "".join("<details><summary>%s</summary><p>%s</p></details>" % (esc(q), esc(a)) for q, a in d["faq"])
+    rel = "".join('<a class="card" href="/%s"><h3>%s</h3><p>%s</p></a>' % (r, esc(TOOLS[r]["label"]) if r in TOOLS else "Birthday wishes generator", esc(TOOLS[r]["desc"]) if r in TOOLS else "Generate birthday messages with a name for any relationship.") for r in d["related"])
+    body = f'''<section class="hero"><div class="wrap">
+<p class="kicker">Free · No sign-up · Works in your browser</p>
+<h1>{esc(d["h1"])}</h1>
+<p class="lead">{esc(d["lead"])}</p>
+<div class="cta-row"><a class="btn" href="{d["cta"]}">{esc(d["cta_text"])}</a></div>
+</div></section>
+<article class="narrow">
+{secs}
+<div class="callout"><p><a class="btn" href="{d["cta"]}">{esc(d["cta_text"])}</a></p></div>
+<h2>Frequently asked questions</h2>
+{faq}
+<div class="related"><h2>More birthday tools</h2><div class="grid">{rel}</div></div>
+</article>'''
+    write(path, page(path, d["meta"], d["desc"], body, trail=[("/", "Home"), (path, d["label"])],
+        schema=[faq_schema(d["faq"]),
+                {"@context": "https://schema.org", "@type": "WebApplication", "name": "WishCraft: " + d["label"], "url": SITE + path,
+                 "applicationCategory": "MultimediaApplication", "operatingSystem": "Any (web browser)",
+                 "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "description": d["desc"]}], current=path), prio="0.9")
+
+# ---------------- Birthday wishes generator (template-based, runs in the browser; not AI)
+import re as _re
+REL = [("friend","Friend","birthday-wishes-for-friend"),("best friend","Best friend","birthday-wishes-for-best-friend"),("brother","Brother","birthday-wishes-for-brother"),
+       ("sister","Sister","birthday-wishes-for-sister"),("mother","Mother","birthday-wishes-for-mother"),("father","Father","birthday-wishes-for-father"),
+       ("husband","Husband","birthday-wishes-for-husband"),("wife","Wife","birthday-wishes-for-wife"),("child","Son or daughter","birthday-wishes-for-son-and-daughter"),
+       ("colleague","Boss or colleague","birthday-wishes-for-boss-and-colleague")]
+def tone_of(h):
+    h = h.lower()
+    if "funny" in h or "humor" in h: return "funny"
+    if "short" in h or "caption" in h: return "short"
+    if "prayer" in h or "islamic" in h: return "blessing"
+    return "heartfelt"
+DATA = {}
+for key, lab, slug in REL:
+    DATA[key] = {}
+    for h, lead_, items in WISH[slug]["sections"]:
+        if "longer note" in h.lower() or "formal email" in h.lower() or "card" in h.lower() and "group" not in h.lower() and "short" not in h.lower(): pass
+        DATA[key].setdefault(tone_of(h), []).extend(w for w in items if "||" not in w and len(w) < 260)
+opts = "".join('<option value="%s">%s</option>' % (k, l) for k, l, _ in REL)
+gen_faq = [("Is this an AI birthday wishes generator?", "No. It assembles messages from our library of hand-written birthday wishes and inserts the name you type. That keeps the writing natural and consistent. You can edit any result before using it."),
+           ("Can I generate birthday wishes with a name?", "Yes. Type the name, choose who it is for and the style, and the generator personalizes each message."),
+           ("Can I use the messages on a poster or birthday link?", "Yes. Copy a message and paste it into the WishCraft wish creator or poster generator."),
+           ("Are the messages unique?", "They are written by us and drawn from our wish collections. Add a memory or detail to make yours one of a kind.")]
+body = f'''<section class="hero"><div class="wrap">
+<p class="kicker">Free · Template-based · Edit before you use</p>
+<h1>Birthday Wishes Generator With Name</h1>
+<p class="lead">Type a name, choose who it is for and pick a style. Get personalized birthday messages you can copy, edit and put on a card, poster or birthday link.</p>
+</div></section>
+<div class="narrow">
+<div class="card" style="margin-top:-10px">
+<form id="gf" onsubmit="return false" style="display:grid;gap:12px">
+<label for="gn"><strong>Name</strong></label><input id="gn" maxlength="30" placeholder="e.g. Sara" style="padding:12px;border-radius:10px;border:1px solid var(--line);background:#0e1328;color:#fff;font:inherit">
+<label for="gr"><strong>Who is it for?</strong></label><select id="gr" style="padding:12px;border-radius:10px;border:1px solid var(--line);background:#0e1328;color:#fff;font:inherit">{opts}</select>
+<label for="gt"><strong>Style</strong></label><select id="gt" style="padding:12px;border-radius:10px;border:1px solid var(--line);background:#0e1328;color:#fff;font:inherit"><option value="heartfelt">Heartfelt</option><option value="funny">Funny</option><option value="short">Short</option><option value="blessing">Blessing / prayer</option></select>
+<button class="btn" id="gb" type="button">Generate birthday wishes</button>
+</form>
+<div id="go" aria-live="polite" style="margin-top:16px"></div>
+</div>
+<h2>How the generator works</h2>
+<p>The generator picks from our hand-written birthday wishes for each relationship and style, then adds the name you enter. It is not AI-written, and that is deliberate: every line has been written and checked by a person. Press the button again for a new set.</p>
+<h2>What to do with your message</h2>
+<ul>
+<li>Paste it into a <a href="/birthday-surprise-maker">birthday surprise page</a> with photos and music.</li>
+<li>Put it on a <a href="/birthday-poster-maker">birthday poster</a> or <a href="/birthday-card-maker">digital card</a>.</li>
+<li>Send it as a text, then add a memory using our guide to <a href="/guides/how-to-write-a-heartfelt-birthday-message">writing a heartfelt birthday message</a>.</li>
+</ul>
+<p>Want to browse instead? See all <a href="/wishes">birthday wishes</a>, including <a href="/wishes/birthday-wishes-in-urdu">Urdu wishes</a> and <a href="/wishes/funny-birthday-wishes">funny wishes</a>.</p>
+<h2>Frequently asked questions</h2>
+{"".join("<details><summary>%s</summary><p>%s</p></details>" % (esc(q), esc(a)) for q, a in gen_faq)}
+</div>
+<script>
+(function(){{
+var D={json.dumps(DATA, ensure_ascii=False)};
+function pick(a,n){{a=a.slice();for(var i=a.length-1;i>0;i--){{var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}}return a.slice(0,n);}}
+function fill(w,n){{if(!n)return w.replace(/\[name\]/g,'my friend').replace(/,\s*my friend([!.])/g,'$1');
+ if(w.indexOf('[name]')>-1)return w.replace(/\[name\]/g,n);
+ if(/^Happy (belated )?birthday/i.test(w))return w.replace(/^(Happy (?:belated )?birthday)/i,'$1, '+n);
+ return 'For '+n+': '+w;}}
+document.getElementById('gb').onclick=function(){{
+ var n=document.getElementById('gn').value.trim(),r=document.getElementById('gr').value,t=document.getElementById('gt').value;
+ var own=(D[r]&&D[r][t])||[];var rest=(D[r].heartfelt||[]).filter(function(x){{return own.indexOf(x)<0;}});
+ var out=document.getElementById('go');out.innerHTML='';
+ var sel=pick(own,5);if(sel.length<5){{sel=sel.concat(pick(rest,5-sel.length));}}
+ if(own.length<5){{var nt=document.createElement('p');nt.className='meta';nt.textContent=own.length?('Only '+own.length+' '+t+' message'+(own.length>1?'s':'')+' for this relationship so far; the rest are heartfelt.'):('No '+t+' messages for this relationship yet, so these are heartfelt.');out.appendChild(nt);}}
+ sel.forEach(function(w){{var d=document.createElement('div');d.className='card';d.style.margin='0 0 10px';
+  var p=document.createElement('p');p.textContent=fill(w,n);var b=document.createElement('button');b.className='btn ghost';b.type='button';b.style.cssText='padding:6px 14px;font-size:.85rem;margin-top:8px';b.textContent='Copy';
+  b.onclick=function(){{try{{navigator.clipboard.writeText(p.textContent);b.textContent='Copied!';setTimeout(function(){{b.textContent='Copy'}},1500);}}catch(e){{}}}};
+  d.appendChild(p);d.appendChild(b);out.appendChild(d);}});}};
+document.getElementById('gb').click();
+}})();
+</script>'''
+write("/birthday-wishes-generator", page("/birthday-wishes-generator", "Birthday Wishes Generator With Name (Free) | WishCraft",
+    "Generate personalized birthday wishes with a name for a friend, family member or colleague. Pick a style, copy and edit. Free, no sign-up.",
+    body, trail=[("/", "Home"), ("/birthday-wishes-generator", "Birthday wishes generator")],
+    schema=[faq_schema(gen_faq), {"@context": "https://schema.org", "@type": "WebApplication", "name": "WishCraft Birthday Wishes Generator", "url": SITE + "/birthday-wishes-generator",
+            "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}]), prio="0.9")
+
 # ---------------- Landing page
 HOME_FAQ = FAQ[:5]
 feat = [
@@ -281,6 +385,7 @@ uses = [("For friends and family", "Surprise a best friend, sibling or cousin wi
 ucards = "".join('<a class="card" href="%s"><h3>%s</h3><p>%s</p></a>' % (l, t, d) for t, d, l in uses)
 gcards = "".join('<a class="card" href="/guides/%s"><p class="kicker">%s</p><h3>%s</h3><p>%s</p></a>' % (s, esc(GUIDES[s]["cat"]), esc(GUIDES[s]["title"]), esc(GUIDES[s]["desc"])) for s in ORDER[:3])
 wcards = "".join('<a class="card" href="/wishes/%s"><h3>%s</h3><p>%s</p></a>' % (s_, esc(WISH[s_]["label"]) + " wishes", esc(WISH[s_]["desc"])) for s_ in ["birthday-wishes-for-friend","birthday-wishes-for-mother","birthday-wishes-for-brother","birthday-wishes-for-sister","birthday-wishes-in-urdu","funny-birthday-wishes"])
+tcards = "".join('<a class="card" href="/%s"><h3>%s</h3><p>%s</p></a>' % (k, esc(v["label"]), esc(v["desc"])) for k, v in TOOLS.items()) + '<a class="card" href="/birthday-wishes-generator"><h3>Birthday wishes generator</h3><p>Generate personalized birthday messages with a name for any relationship and style.</p></a>'
 hfaq = "".join("<details><summary>%s</summary><p>%s</p></details>" % (esc(q), esc(a)) for q, a in HOME_FAQ)
 body = f'''<script>
 /* Old shared links (#wish=, #wishurl=) and ?w= links opened on the home page go straight to the viewer. */
@@ -288,7 +393,7 @@ body = f'''<script>
 </script>
 <section class="hero"><div class="wrap">
 <p class="kicker">Free · No sign-up · Works on any phone</p>
-<h1>Turn a Birthday Wish Into a Memory They Keep</h1>
+<h1>Free Online Birthday Creator: Turn a Wish Into a Memory They Keep</h1>
 <p class="lead">Create an animated birthday surprise with photos, music, a cake ceremony and a heartfelt message, then send it as one private link. Or design a birthday poster in minutes.</p>
 <div class="cta-row"><a class="btn" href="/create">Create a birthday wish</a><a class="btn ghost" href="/guides/how-to-create-a-birthday-surprise-link">See how it works</a></div>
 </div></section>
@@ -296,6 +401,10 @@ body = f'''<script>
 <div class="wrap"><section>
 <h2>What you can make with WishCraft</h2>
 <div class="grid">{fcards}</div></section></div>
+
+<div class="wrap"><section>
+<h2>Free birthday tools</h2>
+<div class="grid">{tcards}</div></section></div>
 
 <div class="band"><div class="narrow">
 <h2 style="margin-top:0">How it works</h2>
@@ -340,7 +449,7 @@ home_schema = [
   "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
   "description": "Free web app for creating animated birthday wishes with photos, music and a shareable link, and for designing birthday posters, videos and GIFs."},
  faq_schema(HOME_FAQ)]
-write("/", page("/", "WishCraft: Free Animated Birthday Wishes & Poster Maker",
+write("/", page("/", "Free Online Birthday Creator: Wishes, Posters & Cards | WishCraft",
     "Create a free animated birthday wish with photos, music and a cake ceremony and share it with one link. Or design a birthday poster, video or GIF. No sign-up.",
     body, schema=home_schema, current="/"), prio="1.0")
 
