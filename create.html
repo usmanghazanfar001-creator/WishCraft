@@ -1558,12 +1558,13 @@
     @keyframes bubbleRise { 0%{opacity:0; transform:translate3d(0,0,0) scale(.6)} 10%{opacity:1} 100%{opacity:0; transform:translate3d(var(--sway,20px),-118vh,0) scale(1.15)} }
     .shoot-star { position:absolute !important; width:var(--len,120px); height:2px; background:linear-gradient(90deg,transparent,#fff); border-radius:2px; filter:drop-shadow(0 0 6px #fff); opacity:0; transform:rotate(var(--ang,28deg)); animation:shoot var(--dur,1.4s) ease-out var(--delay,0s) forwards; }
     @keyframes shoot { 0%{opacity:0; transform:translate3d(0,0,0) rotate(var(--ang,28deg))} 12%{opacity:1} 100%{opacity:0; transform:translate3d(var(--tx,260px),var(--ty,140px),0) rotate(var(--ang,28deg))} }
+      .mode-tab:focus-visible,.chip:focus-visible,.tpl-card:focus-visible,.switch:focus-visible,.btn:focus-visible{outline:2px solid #f4e4a6;outline-offset:2px}
   </style>
 </head>
 
 <body>
 
-  <div class="app" id="editorApp">
+  <main class="app" id="editorApp">
     <div class="header">
       <a class="logo" href="/" style="text-decoration:none;display:block;color:inherit;">✦ WishCraft</a>
       <h1 class="tagline" style="font-family:inherit;font-weight:inherit;font-size:inherit;margin:0;">Free Birthday Wish &amp; Poster Maker — Turn Wishes Into Memories</h1>
@@ -1578,11 +1579,11 @@
       <div>
         <div class="draft-bar" id="draftBar"><span id="draftBarText"></span><button type="button" id="draftClear">Start fresh</button></div>
         <div class="card">
-          <h3><span class="step-num">1</span>Birthday Details</h3>
-          <label>Name *</label><input type="text" id="wName" maxlength="30" placeholder="e.g. Usman Ghazanfar">
+          <h3 role="heading" aria-level="2"><span class="step-num">1</span>Birthday Details</h3>
+          <label for="wName">Name *</label><input type="text" id="wName" maxlength="30" placeholder="e.g. Usman Ghazanfar">
           <div style="display:flex;gap:10px;">
-            <div style="flex:1;"><label>Age (optional)</label><input type="number" id="wAge" min="0" max="150"></div>
-            <div style="flex:1;"><label>Relationship</label><select id="wRelationship">
+            <div style="flex:1;"><label for="wAge">Age (optional)</label><input type="number" id="wAge" min="0" max="150"></div>
+            <div style="flex:1;"><label for="wRelationship">Relationship</label><select id="wRelationship">
                 <option>Friend</option>
                 <option>Brother</option>
                 <option>Sister</option>
@@ -1608,7 +1609,7 @@
         </div>
 
         <div class="card">
-          <h3><span class="step-num">2</span>Main Photo</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">2</span>Main Photo</h3>
           <div class="upload-box" id="wUploadBox"><input type="file" id="wPhotoInput"
               accept="image/jpeg,image/png,image/webp">
             <div id="wUploadHint">📷 Click or drag & drop the hero photo<br><span class="small">Auto-compressed for
@@ -1616,7 +1617,7 @@
           </div>
           <button class="btn btn-outline" id="wRemovePhoto" style="display:none;margin-top:10px;width:100%;">Remove
             photo</button>
-          <label>Photo shape</label>
+          <label for="wDuration">Photo shape</label>
           <div class="chip-row" id="wShapeChips">
             <div class="chip active" data-v="circle">Circle</div>
             <div class="chip" data-v="rounded">Rounded</div>
@@ -1628,7 +1629,7 @@
         </div>
 
         <div class="card">
-          <h3><span class="step-num">3</span>Birthday Memories</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">3</span>Birthday Memories</h3>
           <div class="small" style="margin-bottom:8px;">Add up to 10 photos to build the memory story. Optional — one
             photo already makes a beautiful wish.</div>
           <div class="upload-box" id="memUploadBox"><input type="file" id="memPhotoInput"
@@ -1662,16 +1663,16 @@
         </div>
 
         <div class="card">
-          <h3><span class="step-num">4</span>Birthday Message</h3>
-          <label>Heading</label><input type="text" id="wHeading" placeholder="To Someone Special" maxlength="40">
-          <label>Quick message style</label><select id="wQuickMsg"><option value="">Choose a ready-made message…</option><option value="heartfelt">Heartfelt</option><option value="funny">Funny</option><option value="short">Short &amp; sweet</option><option value="formal">Formal</option><option value="blessing">Blessing</option><option value="urdu">اردو — سالگرہ مبارک</option></select>
-          <label>Message</label><textarea id="wMessage"
+          <h3 role="heading" aria-level="2"><span class="step-num">4</span>Birthday Message</h3>
+          <label for="wHeading">Heading</label><input type="text" id="wHeading" placeholder="To Someone Special" maxlength="40">
+          <label for="wQuickMsg">Quick message style</label><select id="wQuickMsg"><option value="">Choose a ready-made message…</option><option value="heartfelt">Heartfelt</option><option value="funny">Funny</option><option value="short">Short &amp; sweet</option><option value="formal">Formal</option><option value="blessing">Blessing</option><option value="urdu">اردو — سالگرہ مبارک</option></select>
+          <label for="wMessage">Message</label><textarea id="wMessage"
             maxlength="260">Wishing you a beautiful birthday filled with happiness, success, love and countless unforgettable memories.</textarea>
-          <label>From</label><input type="text" id="wSender" placeholder="e.g. Rana Ghazanfar Ali" maxlength="30">
+          <label for="wSender">From</label><input type="text" id="wSender" placeholder="e.g. Rana Ghazanfar Ali" maxlength="30">
         </div>
 
         <div class="card">
-          <h3><span class="step-num">5</span>Background Music</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">5</span>Background Music</h3>
           <div class="upload-box" id="audioUploadBox"><input type="file" id="audioInput"
               accept="audio/*,.mp3,.wav,.m4a,.ogg,.aac,.flac,.webm">
             <div id="audioHint">🎵 Upload Song</div>
@@ -1688,7 +1689,7 @@
               <input type="range" id="audioVolume" min="0" max="1" step="0.05" value="0.7" style="flex:1;">
               <button class="btn btn-outline" id="audioRemoveBtn">✕</button>
             </div>
-            <label style="margin-top:10px;">Play this part of the song</label>
+            <label style="margin-top:10px;" for="bWordsTitle">Play this part of the song</label>
             <div class="audio-row"><span class="small" style="width:32px;">Start</span><input type="range"
                 id="audioStart" min="0" max="0" step="1" value="0" style="flex:1;"><span class="small"
                 id="audioStartLabel">0:00</span></div>
@@ -1700,12 +1701,12 @@
         </div>
 
         <div class="card">
-          <h3><span class="step-num">6</span>Theme</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">6</span>Theme</h3>
           <div class="tpl-grid" id="wThemeGrid"></div>
         </div>
 
         <div class="card">
-          <h3><span class="step-num">7</span>Animations</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">7</span>Animations</h3>
           <div class="chip-row" id="wEffectChips">
             <div class="chip active" data-v="confetti">Confetti</div>
             <div class="chip active" data-v="balloons">Balloons</div>
@@ -1726,7 +1727,7 @@
         </div>
 
         <div class="card">
-          <h3><span class="bonus-badge">✦</span>Bonus Scenes &amp; Extras</h3>
+          <h3 role="heading" aria-level="2"><span class="bonus-badge">✦</span>Bonus Scenes &amp; Extras</h3>
           <div class="bonus-sub">All optional — leave everything off and your wish plays exactly as before.</div>
 
           <label>Cake ceremony</label>
@@ -1748,11 +1749,11 @@
           <textarea id="bWords" maxlength="600" rows="4" placeholder="One reason per line (up to 6)&#10;Your laugh lights up every room&#10;You are always there for everyone"></textarea>
 
           <div class="bonus-sep"></div>
-          <label>🎟️ Scratch-card surprise</label>
+          <label for="bScratch">🎟️ Scratch-card surprise</label>
           <textarea id="bScratch" maxlength="140" rows="2" placeholder="Hidden message or gift idea, e.g. “Dinner is on me this weekend! 🍽️”"></textarea>
 
           <div class="bonus-sep"></div>
-          <label>🔒 Lock until a date &amp; time <span class="small">(optional)</span></label>
+          <label for="bUnlock">🔒 Lock until a date &amp; time <span class="small">(optional)</span></label>
           <div style="display:flex;gap:8px;align-items:center;">
             <input type="datetime-local" id="bUnlock">
             <button class="btn btn-outline" id="bUnlockClear" type="button" style="padding:10px 12px;">✕</button>
@@ -1761,12 +1762,12 @@
         </div>
 
         <div class="card">
-          <h3><span class="step-num">8</span>Preview &amp; <span class="step-num">9</span>Share</h3>
+          <h3 role="heading" aria-level="2"><span class="step-num">8</span>Preview &amp; <span class="step-num">9</span>Share</h3>
           <button class="btn btn-gold" id="wPreviewBtn" style="width:100%;margin-bottom:10px;">▶ Preview Birthday
             Experience</button>
           <button class="btn btn-outline" id="wGenerateBtn" style="width:100%;">🔗 Create Wish & Generate Link</button>
           <div id="wLinkResult" style="display:none;margin-top:14px;">
-            <label>Your shareable link</label>
+            <label for="wLinkOutput">Your shareable link</label>
             <div class="link-box"><input type="text" id="wLinkOutput" readonly><button class="btn btn-outline"
                 id="wCopyLink">Copy</button></div>
             <div class="link-box"><button class="btn btn-gold" id="wShareWA" style="flex:1;">💬 WhatsApp</button><button
@@ -1802,22 +1803,22 @@
     <div id="posterGenerator" class="grid" style="display:none;">
       <div>
         <div class="card">
-          <h3>Photo</h3>
+          <h3 role="heading" aria-level="2">Photo</h3>
           <div class="upload-box" id="uploadBox"><input type="file" id="photoInput"
               accept="image/jpeg,image/png,image/webp">
             <div id="uploadHint">📷 Click or drag & drop a photo here<br><span class="small">JPG, PNG or WEBP</span>
             </div>
           </div>
-          <div id="photoControls" style="display:none;margin-top:12px;"><label>Zoom</label><input type="range"
+          <div id="photoControls" style="display:none;margin-top:12px;"><label for="zoomRange">Zoom</label><input type="range"
               id="zoomRange" min="100" max="200" value="100"><button class="btn btn-outline" id="removePhoto"
               style="margin-top:8px;width:100%;">Remove photo</button></div>
         </div>
         <div class="card">
-          <h3>Birthday Person</h3><label>Name *</label><input type="text" id="nameInput" placeholder="e.g. Sarah"
-            maxlength="30"><label>Age (optional)</label><input type="number" id="ageInput" min="0" max="150">
+          <h3 role="heading" aria-level="2">Birthday Person</h3><label for="nameInput">Name *</label><input type="text" id="nameInput" placeholder="e.g. Sarah"
+            maxlength="30"><label for="ageInput">Age (optional)</label><input type="number" id="ageInput" min="0" max="150">
         </div>
         <div class="card">
-          <h3>Birthday Message</h3><label>Choose a style</label>
+          <h3 role="heading" aria-level="2">Birthday Message</h3><label for="msgPreset">Choose a style</label>
           <select id="msgPreset">
             <option value="custom">Custom</option>
             <option value="default">Default</option>
@@ -1826,16 +1827,16 @@
             <option value="heartfelt">Heartfelt</option>
             <option value="short">Short</option>
           </select>
-          <label>Message</label><textarea id="messageInput" maxlength="220"></textarea><label>From</label><input
+          <label for="messageInput">Message</label><textarea id="messageInput" maxlength="220"></textarea><label for="senderInput">From</label><input
             type="text" id="senderInput" placeholder="e.g. Your friends & family" maxlength="30">
         </div>
         <div class="card">
-          <h3>Template</h3>
+          <h3 role="heading" aria-level="2">Template</h3>
           <div class="tpl-grid" id="tplGrid"></div>
         </div>
         <div class="card">
-          <h3>Customization</h3>
-          <label>Text alignment</label>
+          <h3 role="heading" aria-level="2">Customization</h3>
+          <label for="fontSelect">Text alignment</label>
           <div class="chip-row" id="alignChips">
             <div class="chip" data-v="center">Center</div>
             <div class="chip" data-v="left">Left</div>
@@ -1893,7 +1894,7 @@
       <p style="margin:0 0 8px;">New here? Read <a href="/guides/how-to-create-a-birthday-surprise-link" style="color:#f4e4a6;">how to build a birthday surprise link</a>, browse <a href="/guides/birthday-wishes-messages" style="color:#f4e4a6;">birthday message ideas</a> or see the <a href="/faq" style="color:#f4e4a6;">FAQ</a>.</p>
       <p style="margin:0;"><a href="/" style="color:#f4e4a6;">Home</a> · <a href="/guides" style="color:#f4e4a6;">Guides</a> · <a href="/about" style="color:#f4e4a6;">About</a> · <a href="/privacy" style="color:#f4e4a6;">Privacy</a> · <a href="/terms" style="color:#f4e4a6;">Terms</a> · <a href="/contact" style="color:#f4e4a6;">Contact</a></p>
     </footer>
-  </div>
+  </main>
 
   <!-- ================= FULL-SCREEN CINEMATIC EXPERIENCE ================= -->
   <div id="wishScreen">
@@ -3631,6 +3632,31 @@
     [['funny', 'Funny'], ['blessing', 'Blessing']].forEach(([v, l]) => { const o = document.createElement('option'); o.value = v; o.textContent = l; $('msgPreset').appendChild(o); });
   </script>
 
+  <script>
+    /* Keyboard & screen-reader access for the click-only controls (tabs, chips, theme cards, switches). */
+    (function () {
+      var SEL = '.mode-tab,.chip,.tpl-card,.switch,.upload-box';
+      function enhance(root) {
+        (root.querySelectorAll ? root.querySelectorAll(SEL) : []).forEach(function (el) {
+          if (el.dataset.a11y) return; el.dataset.a11y = '1';
+          if (el.classList.contains('upload-box')) return;
+          el.setAttribute('tabindex', '0');
+          if (el.classList.contains('switch')) { el.setAttribute('role', 'switch'); var sp = el.parentElement && el.parentElement.querySelector('span'); if (sp) el.setAttribute('aria-label', sp.textContent.replace(/\s+/g, ' ').trim()); el.setAttribute('aria-checked', el.classList.contains('on')); }
+          else el.setAttribute('role', 'button');
+        });
+      }
+      function syncSwitches() { document.querySelectorAll('.switch').forEach(function (s) { s.setAttribute('aria-checked', s.classList.contains('on')); }); }
+      enhance(document);
+      new MutationObserver(function (ms) {
+        ms.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) { if (n.matches && n.matches(SEL)) enhance({ querySelectorAll: function () { return [n]; } }); enhance(n); } }); });
+        syncSwitches();
+      }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      document.addEventListener('keydown', function (e) {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('.mode-tab,.chip,.tpl-card,.switch')) { e.preventDefault(); e.target.click(); }
+      });
+      document.addEventListener('click', function () { setTimeout(syncSwitches, 0); });
+    })();
+  </script>
 </body>
 
 </html>

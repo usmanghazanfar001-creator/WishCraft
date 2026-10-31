@@ -6,7 +6,9 @@ ADSENSE = "ca-pub-7402751690588915"
 CONTACT_EMAIL = os.environ.get("WISHCRAFT_CONTACT_EMAIL", "YOUR-EMAIL@example.com")
 TODAY = "2026-10-23"
 
-NAV = [("/", "Home"), ("/guides", "Guides"), ("/faq", "FAQ"), ("/about", "About")]
+NAV = [("/", "Home"), ("/wishes", "Wishes"), ("/guides", "Guides"), ("/faq", "FAQ"), ("/about", "About")]
+
+CSS = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "site.css"), encoding="utf8").read()
 
 def esc(s): return html.escape(s, quote=True)
 
@@ -30,9 +32,9 @@ def page(path, title, desc, body, *, trail=None, schema=None, ads=True, og_type=
             parts.append(esc(n) if i == len(trail) - 1 else '<a href="%s">%s</a>' % (p, esc(n)))
         crumb_html = '<nav class="crumbs" aria-label="Breadcrumb">%s</nav>' % " › ".join(parts)
     adsense = ("""<script>
-/* Load AdSense after the page has rendered so ads never block first paint (Core Web Vitals). */
+/* Load AdSense on first interaction (scroll/tap/key) or after 8s, so ads never delay first paint or Core Web Vitals. */
 (function(){var d=false;function go(){if(d)return;d=true;var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%s';document.head.appendChild(s);}
-function later(){('requestIdleCallback' in window)?requestIdleCallback(go,{timeout:2500}):setTimeout(go,1500);}
+function later(){setTimeout(go,8000);}
 if(document.readyState==='complete')later();else addEventListener('load',later);
 ['scroll','pointerdown','keydown','touchstart'].forEach(function(e){addEventListener(e,go,{once:true,passive:true});});})();
 </script>
@@ -57,7 +59,7 @@ if(document.readyState==='complete')later();else addEventListener('load',later);
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="/favicon.png">
 <link rel="apple-touch-icon" href="/favicon.png">
-<link rel="stylesheet" href="/assets/site.css">
+<style>{CSS}</style>
 {"<link rel=\"preconnect\" href=\"https://pagead2.googlesyndication.com\" crossorigin>" if ads else ""}
 {jsonld(ld)}{adsense}</head>
 <body>
@@ -72,10 +74,11 @@ if(document.readyState==='complete')later();else addEventListener('load',later);
 </main>
 <footer class="site"><div class="wrap">
 <div class="cols">
-<div><h4>✦ WishCraft</h4><p>A free birthday wish and poster maker. Add photos, music and a message, then share one private link.</p></div>
-<div><h4>Make something</h4><ul><li><a href="/create">Birthday wish creator</a></li><li><a href="/create">Poster, video &amp; GIF maker</a></li><li><a href="/guides/how-to-create-a-birthday-surprise-link">How it works</a></li></ul></div>
-<div><h4>Guides</h4><ul><li><a href="/guides/birthday-wishes-messages">Birthday wishes &amp; messages</a></li><li><a href="/guides/how-to-write-a-heartfelt-birthday-message">Write a heartfelt message</a></li><li><a href="/guides">All guides</a></li></ul></div>
-<div><h4>Company</h4><ul><li><a href="/about">About</a></li><li><a href="/faq">FAQ</a></li><li><a href="/contact">Contact</a></li><li><a href="/privacy">Privacy policy</a></li><li><a href="/terms">Terms of use</a></li></ul></div>
+<div><p class="fh">✦ WishCraft</p><p>A free birthday wish and poster maker. Add photos, music and a message, then share one private link.</p></div>
+<div><p class="fh">Make something</p><ul><li><a href="/create">Birthday wish creator</a></li><li><a href="/create">Poster, video &amp; GIF maker</a></li><li><a href="/guides/how-to-create-a-birthday-surprise-link">How it works</a></li></ul></div>
+<div><p class="fh">Birthday wishes</p><ul><li><a href="/wishes/birthday-wishes-for-friend">For a friend</a></li><li><a href="/wishes/birthday-wishes-for-mother">For a mother</a></li><li><a href="/wishes/birthday-wishes-in-urdu">In Urdu</a></li><li><a href="/wishes/funny-birthday-wishes">Funny wishes</a></li><li><a href="/wishes">All wishes</a></li></ul></div>
+<div><p class="fh">Guides</p><ul><li><a href="/guides/how-to-write-a-heartfelt-birthday-message">Write a heartfelt message</a></li><li><a href="/guides/birthday-photo-tips-for-memory-stories">Photo tips</a></li><li><a href="/guides">All guides</a></li></ul></div>
+<div><p class="fh">Company</p><ul><li><a href="/about">About</a></li><li><a href="/faq">FAQ</a></li><li><a href="/contact">Contact</a></li><li><a href="/privacy">Privacy policy</a></li><li><a href="/terms">Terms of use</a></li></ul></div>
 </div>
 <div class="copy">© 2026 WishCraft. All rights reserved.</div>
 </div></footer>

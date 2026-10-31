@@ -50,9 +50,11 @@ table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.96rem}th,td{bo
 .related{margin:2.4em 0 1em}
 footer.site{margin-top:60px;border-top:1px solid var(--line);background:#070a14;padding:36px 0 28px;font-size:.93rem;color:var(--muted)}
 footer.site .cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-footer.site h4{color:#fff;margin:0 0 .6em;font-size:1rem}
+footer.site .fh{font-weight:700;color:#fff;margin:0 0 .6em;font-size:1rem}
 footer.site ul{list-style:none;padding:0;margin:0}footer.site li{margin-bottom:.35em}
 footer.site a{color:var(--muted)}footer.site a:hover{color:#fff}
 .copy{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);font-size:.85rem}
 @media(max-width:640px){body{font-size:16px}.hero{padding:44px 0 32px}nav.main{margin-left:0;width:100%}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.card h2{font-size:1.2rem;margin:0 0 .6em;color:var(--gold2)}

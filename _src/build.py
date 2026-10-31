@@ -6,6 +6,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 from layout import *
 from guides_a import G as GA
 from guides_b import G as GB
+from wishes_a import W as WA
+from wishes_b import W as WB
+from wishes_c import W as WC
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GUIDES = {}; GUIDES.update(GA); GUIDES.update(GB)
@@ -42,7 +45,7 @@ for slug, g in GUIDES.items():
         schema=[article_schema(path, g["title"], g["desc"])], og_type="article", current="/guides"), prio="0.8")
 
 # ---------------- guides index
-cards = "".join('<a class="card" href="/guides/%s"><p class="kicker">%s</p><h3>%s</h3><p>%s</p></a>' % (s, esc(GUIDES[s]["cat"]), esc(GUIDES[s]["title"]), esc(GUIDES[s]["desc"])) for s in ORDER)
+cards = "".join('<a class="card" href="/guides/%s"><p class="kicker">%s</p><h2>%s</h2><p>%s</p></a>' % (s, esc(GUIDES[s]["cat"]), esc(GUIDES[s]["title"]), esc(GUIDES[s]["desc"])) for s in ORDER)
 body = f'''<div class="narrow"><h1>Birthday Guides, Ideas &amp; Message Help</h1>
 <p>Practical guides from WishCraft: how to write a message that sounds like you, how to choose photos, how to design a poster and how to surprise someone who lives far away. Every guide is free to read and written to be useful with or without our tools.</p></div>
 <div class="wrap"><div class="grid">{cards}</div></div>
@@ -199,6 +202,65 @@ write("/terms", page("/terms", "Terms of Use | WishCraft",
     "The rules for using WishCraft: your content, acceptable use, copyrighted music, sharing and liability.", body,
     trail=[("/", "Home"), ("/terms", "Terms of Use")], ads=False), prio="0.3")
 
+
+# ---------------- Wish pages (/wishes/<slug>) and hub
+WISH = {}; WISH.update(WA); WISH.update(WB); WISH.update(WC)
+WORDER = ["birthday-wishes-for-friend","birthday-wishes-for-best-friend","birthday-wishes-for-brother","birthday-wishes-for-sister",
+          "birthday-wishes-for-mother","birthday-wishes-for-father","birthday-wishes-for-husband","birthday-wishes-for-wife",
+          "birthday-wishes-for-son-and-daughter","birthday-wishes-for-boss-and-colleague","funny-birthday-wishes",
+          "short-birthday-wishes-and-captions","birthday-wishes-in-urdu","islamic-birthday-wishes-and-duas","belated-birthday-wishes"]
+assert set(WORDER) == set(WISH), set(WORDER) ^ set(WISH)
+
+def wish_li(w, kind):
+    if "||" in w:
+        a, b = w.split("||", 1)
+        if not b: return "<li>%s</li>" % esc(a)
+        lang = "ur" if kind == "ur" else "ar"
+        return '<li><span lang="%s" dir="rtl" style="display:block;font-size:1.25em;line-height:2;text-align:right">%s</span><span>%s</span></li>' % (lang, esc(a), esc(b))
+    return "<li>%s</li>" % esc(w)
+
+def wish_count(d): return sum(len(x[2]) for x in d["sections"])
+
+for slug, d in WISH.items():
+    path = "/wishes/" + slug
+    kind = "ur" if d.get("urdu") else "ar"
+    n = wish_count(d)
+    secs = ""; toc = ""
+    for i, (h, lead, items) in enumerate(d["sections"]):
+        sid = "s%d" % (i + 1)
+        toc += '<li><a href="#%s">%s</a></li>' % (sid, esc(h))
+        secs += '<h2 id="%s">%s</h2>%s<ul class="wish-list">%s</ul>' % (sid, esc(h), ("<p>%s</p>" % esc(lead)) if lead else "", "".join(wish_li(w, "ur" if d.get("urdu") else "ar") for w in items))
+    tips = "".join("<li>%s</li>" % esc(t) for t in d["tips"])
+    rel = "".join('<a class="card" href="/wishes/%s"><h3>%s</h3><p>%s</p></a>' % (r, esc(WISH[r]["label"]) + " wishes", esc(WISH[r]["desc"])) for r in d["related"])
+    body = f'''<article class="narrow">
+<p class="kicker">Birthday wishes · {n} messages</p>
+<h1>{esc(d["title"])}</h1>
+<p class="meta">By WishCraft · Updated October 31, 2026 · Tap and hold any message to copy it</p>
+{"".join("<p>%s</p>" % esc(x) for x in d["intro"])}
+<div class="toc"><strong>On this page</strong><ul>{toc}</ul></div>
+{secs}
+<h2>Tips to make your message more personal</h2>
+<ul>{tips}</ul>
+<div class="callout"><p><strong>Make it a surprise, not just a text.</strong> Paste your favorite message into the <a href="/create">WishCraft birthday wish creator</a>, add a photo and a song, and send a private animated link, or turn it into a <a href="/create">birthday poster</a>. See the <a href="/guides/how-to-create-a-birthday-surprise-link">step-by-step tutorial</a>.</p></div>
+<div class="related"><h2>More birthday wishes</h2><div class="grid">{rel}</div><p><a href="/wishes">Browse all birthday wishes →</a></p></div>
+</article>'''
+    write(path, page(path, d["meta"], d["desc"], body,
+        trail=[("/", "Home"), ("/wishes", "Birthday wishes"), (path, d["label"] + " wishes")],
+        schema=[article_schema(path, d["title"], d["desc"])], og_type="article", current="/wishes"), prio="0.8")
+
+hub_cards = "".join('<a class="card" href="/wishes/%s"><p class="kicker">%d messages</p><h2>%s</h2><p>%s</p></a>' % (s_, wish_count(WISH[s_]), esc(WISH[s_]["meta"]), esc(WISH[s_]["desc"])) for s_ in WORDER)
+total = sum(wish_count(WISH[s_]) for s_ in WORDER)
+body = f'''<div class="narrow"><h1>Birthday Wishes &amp; Messages for Everyone</h1>
+<p>Find the right words fast. We've written {total}+ original birthday wishes, sorted by who you're writing to: friends, family, partners, colleagues and more. There are funny, short and heartfelt versions, plus wishes in Urdu and Islamic duas. Every message is meant to be edited, so add a name and a memory and make it yours.</p>
+<p>Not sure where to start? Read <a href="/guides/how-to-write-a-heartfelt-birthday-message">how to write a heartfelt birthday message</a> first.</p></div>
+<div class="wrap"><div class="grid">{hub_cards}</div></div>
+<div class="narrow"><div class="callout"><p>Want to go beyond a text? <a href="/create">Create a free animated birthday wish</a> with photos, music and your message, then share it with one link.</p></div></div>'''
+write("/wishes", page("/wishes", "Birthday Wishes & Messages for Friends, Family & More | WishCraft",
+    "Hundreds of original birthday wishes for friends, brothers, sisters, parents, partners, colleagues, in Urdu and more: heartfelt, funny and short.",
+    body, trail=[("/", "Home"), ("/wishes", "Birthday wishes")], current="/wishes",
+    schema=[{"@context": "https://schema.org", "@type": "CollectionPage", "name": "Birthday Wishes", "url": SITE + "/wishes",
+             "hasPart": [{"@type": "Article", "headline": WISH[s_]["title"], "url": SITE + "/wishes/" + s_} for s_ in WORDER]}]), prio="0.9")
+
 # ---------------- Landing page
 HOME_FAQ = FAQ[:5]
 feat = [
@@ -218,6 +280,7 @@ uses = [("For friends and family", "Surprise a best friend, sibling or cousin wi
         ("When you're far away", "Time-lock a surprise to arrive on their birthday morning, wherever they are.", "/guides/long-distance-birthday-surprise-ideas")]
 ucards = "".join('<a class="card" href="%s"><h3>%s</h3><p>%s</p></a>' % (l, t, d) for t, d, l in uses)
 gcards = "".join('<a class="card" href="/guides/%s"><p class="kicker">%s</p><h3>%s</h3><p>%s</p></a>' % (s, esc(GUIDES[s]["cat"]), esc(GUIDES[s]["title"]), esc(GUIDES[s]["desc"])) for s in ORDER[:3])
+wcards = "".join('<a class="card" href="/wishes/%s"><h3>%s</h3><p>%s</p></a>' % (s_, esc(WISH[s_]["label"]) + " wishes", esc(WISH[s_]["desc"])) for s_ in ["birthday-wishes-for-friend","birthday-wishes-for-mother","birthday-wishes-for-brother","birthday-wishes-for-sister","birthday-wishes-in-urdu","funny-birthday-wishes"])
 hfaq = "".join("<details><summary>%s</summary><p>%s</p></details>" % (esc(q), esc(a)) for q, a in HOME_FAQ)
 body = f'''<script>
 /* Old shared links (#wish=, #wishurl=) and ?w= links opened on the home page go straight to the viewer. */
@@ -255,6 +318,12 @@ body = f'''<script>
 <p>WishCraft is built to make that effort small. You don't need design skills or editing software, and the person receiving it doesn't need an account or an app. The animations, cake ceremony and photo story give your words a moment to land, rather than burying them in a chat thread.</p>
 <p>If you're not sure what to write, our guides help: start with <a href="/guides/how-to-write-a-heartfelt-birthday-message">how to write a heartfelt birthday message</a> or browse more than a hundred <a href="/guides/birthday-wishes-messages">birthday wishes</a> for friends, family, partners and colleagues.</p>
 </section></div>
+
+<div class="wrap"><section>
+<h2>Birthday wishes by person</h2>
+<p>Need the right words? Browse original messages for every relationship.</p>
+<div class="grid">{wcards}</div>
+<p><a href="/wishes">Browse all birthday wishes →</a></p></section></div>
 
 <div class="wrap"><section>
 <h2>Latest guides</h2>

@@ -1,0 +1,286 @@
+# Keyword landing pages: /wishes/<slug>.  Each: sections of (heading, lead, [wishes]).
+W = {}
+
+W["birthday-wishes-for-friend"] = dict(
+ label="Friend", title="Birthday Wishes for a Friend: 30 Heartfelt, Funny & Short Messages",
+ meta="Birthday Wishes for a Friend: 30 Messages to Copy", 
+ desc="30 original birthday wishes for a friend: heartfelt, funny, short and long-distance messages you can copy, plus tips to make them personal.",
+ intro=["Friends are the family we choose, so their birthday message deserves more than a copied line. The wishes below are grouped by tone so you can match the friendship: sincere for the friend who's been there through everything, playful for the one who laughs at your worst jokes, and brief for the friend you'd rather text than write a letter to.",
+        "Every message works best with one small detail added: a place you went, a joke only you two get, something they did for you. Replace the bracketed parts or add your own memory and it stops being a template and becomes yours."],
+ sections=[
+ ("Heartfelt birthday wishes for a friend","For the friend who has earned a serious thank-you.",[
+ "Happy birthday, [name]. Thank you for being the person I can call at any hour and never have to explain myself to.",
+ "You've been there for the good days and the terrible ones, and you never kept score. I hope this birthday gives back a fraction of what you've given.",
+ "Friends like you are rare. I'm grateful for every year we've shared and excited for the ones ahead. Happy birthday!",
+ "Wishing you a year where everything you've worked for finally clicks into place. You deserve it, [name].",
+ "Some people make life easier just by being in it. You are one of them. Happy birthday, my friend.",
+ "I hope today you feel as appreciated as you've always made me feel. Happy birthday!",
+ "Thank you for believing in me before I believed in myself. May this year bring you the same kind of faith in return.",
+ "You make the world a little kinder. I hope this year is kind to you in return.",
+ ]),
+ ("Funny birthday wishes for a friend","Use only if you're sure they'll laugh.",[
+ "Happy birthday! I'd tell everyone how old you are, but you've already begged me not to.",
+ "Another year older and still no sign of maturity. Never change.",
+ "Happy birthday to the only person who laughs at my jokes even when they're not funny. Congratulations on your impeccable taste.",
+ "You're not getting older, you're becoming a classic. Happy birthday!",
+ "Remember: it's not a wrinkle, it's a smile line that got ambitious. Happy birthday!",
+ "Today you're allowed to eat the whole cake. I'll even help.",
+ "I hope your birthday is as good as the leftovers of my last birthday cake. Which you ate. Happy birthday!",
+ "Here's to another year of bad decisions and good stories. Happy birthday!",
+ ]),
+ ("Short birthday wishes for a friend","For texts, cards and captions.",[
+ "Happy birthday! Thanks for being you.",
+ "To my favorite person to do nothing with: happy birthday!",
+ "Cheers to you, [name]. Today is all yours.",
+ "Wishing you the best day and an even better year.",
+ "Love you, friend. Have the best birthday!",
+ "Big hugs and bigger cake today!",
+ ]),
+ ("Birthday wishes for a friend who lives far away","When you can't be there in person.",[
+ "I wish I could hand you the cake in person, but know that my whole heart is at your table today. Happy birthday!",
+ "Distance changes how often we talk, never how much I care. Happy birthday, [name].",
+ "Even from miles away, you're one of the first people I think of when good things happen. Happy birthday!",
+ "Counting the days until we can celebrate together. Until then, have the happiest birthday!",
+ "Time zones can't stop me from wishing you well. Enjoy your day, and call me when the cake is gone!",
+ ]),
+ ],
+ tips=["Name something specific you appreciate; \"thanks for always listening\" beats \"you're great.\"",
+       "Match their sense of humor. If they'd roll their eyes at a cheesy line, don't send one.",
+       "Send it early in their day, then follow up with a call or voice note if you're close.",
+       "Pair the message with a photo you both love. A memory is the best gift that costs nothing."],
+ related=["birthday-wishes-for-best-friend","funny-birthday-wishes","short-birthday-wishes-and-captions"])
+
+W["birthday-wishes-for-best-friend"] = dict(
+ label="Best friend", title="Birthday Wishes for a Best Friend: 25 Messages That Mean It",
+ meta="Birthday Wishes for Best Friend: 25 Heartfelt Messages",
+ desc="25 birthday wishes for your best friend, from emotional thank-yous to inside-joke messages, with tips for making yours unforgettable.",
+ intro=["A best friend knows your secrets, your coffee order and exactly how to talk you down at 2 a.m. Their birthday is the one day of the year to say the things you usually skip. These messages range from deeply sentimental to affectionately roasting, so pick the one closest to how you two actually talk.",
+        "If you only change one thing, add a memory. \"Remember when we got lost in [place]?\" will land harder than any polished sentence."],
+ sections=[
+ ("Emotional birthday wishes for a best friend","",[
+ "[Name], if I could give you one thing for your birthday, it would be the ability to see yourself the way I do. You are extraordinary.",
+ "You've been my best friend through every version of me. Thank you for sticking around for all of them.",
+ "Of all the people I've met, you're the one I'm most sure I'd choose again. Happy birthday.",
+ "Life gave me a lot of good things, but you are the one I'm proudest of keeping. Happy birthday, best friend.",
+ "I don't say it enough: you make my life better. Today I want to say it loud. Happy birthday!",
+ "When I think of home, I think of people like you. Thank you for being mine.",
+ "I hope this year gives you as much peace as you've given me. Happy birthday.",
+ "No matter how busy life gets, you're always the first person I want to tell everything. Happy birthday, [name].",
+ ]),
+ ("Birthday wishes for a best friend with humor","",[
+ "Happy birthday to the person who knows way too much about me and hasn't used it against me. Yet.",
+ "You're my partner in crime, and the only person I'd happily share a cell with. Happy birthday!",
+ "Happy birthday! May your day be as chaotic and wonderful as our friendship.",
+ "We're basically the same person, except you're better looking. Happy birthday!",
+ "Thank you for being the reason half of my favorite stories exist. And the reason I can't tell them in public.",
+ "Congratulations on another year of putting up with me. You deserve a medal. And cake.",
+ "Happy birthday to my emergency contact, personal therapist and snack thief.",
+ "You're not old, you're just more experienced at being my best friend.",
+ ]),
+ ("Best friend birthday captions","For photos and stories.",[
+ "My person, my favorite, my best friend. Happy birthday!",
+ "Same friend, new age. Still my favorite.",
+ "Cheers to the one who gets it. Happy birthday!",
+ "Best friends don't get older, they get better.",
+ "Today we celebrate the best thing that ever happened to my life.",
+ "Happy birthday to the one I'd call first.",
+ ]),
+ ("A longer note for a best friend's card","Copy, edit, and sign.",[
+ "Dear [name], I was thinking about how long we've known each other and realized I can't remember the last time I made a big decision without you in my head. You make me braver, funnier and a lot less alone. I hope this birthday reminds you how loved you are. Happy birthday, always.",
+ "[Name], the best part of any story I tell starts with \"so me and [name]…\" Thank you for being in so many of them. I'm already looking forward to the next chapter. Love you. Happy birthday!",
+ ]),
+ ],
+ tips=["Lead with a real memory, then add a wish for their year.","Say the thing you're usually too embarrassed to say; once a year is allowed.","Send a voice note instead of text if you have a story to tell.","Plan a small surprise: a late-night call, a photo slideshow or a short video from mutual friends."],
+ related=["birthday-wishes-for-friend","funny-birthday-wishes","birthday-wishes-for-brother"])
+
+W["birthday-wishes-for-brother"] = dict(
+ label="Brother", title="Birthday Wishes for a Brother: 28 Messages for Older & Younger Brothers",
+ meta="Birthday Wishes for Brother: 28 Messages (Big & Little)",
+ desc="28 birthday wishes for a brother: sentimental, funny and short messages for older, younger and twin brothers, plus caption ideas.",
+ intro=["Brothers show love in odd ways: teasing, borrowed hoodies and showing up when it counts. A birthday message is a chance to say what the teasing hides. Below are wishes for older brothers, younger brothers and brothers you're close enough to roast.",
+        "Keep the tone you normally use with him. If you never speak in sentimental paragraphs, a short and sincere line will mean more than a long speech."],
+ sections=[
+ ("Sweet birthday wishes for a brother","",[
+ "Happy birthday, bhai. You've always been the person I could count on, even when I didn't say it. Thank you.",
+ "Growing up with you taught me loyalty, patience and how to hide the last piece of cake. Happy birthday, brother!",
+ "I hope this year pays you back for all the times you put others first. You deserve every good thing.",
+ "No matter how far we go, you'll always be part of my everyday. Happy birthday, brother.",
+ "Your strength has quietly held our family together. I'm proud to call you my brother.",
+ "Happy birthday to the guy who taught me how to ride a bike, how to fight fair and how to get back up.",
+ "I couldn't have picked a better brother. Have a wonderful birthday!",
+ "Wishing you a year of good health, good luck and good people around you.",
+ ]),
+ ("For an older brother","",[
+ "You've been my role model since I could walk. Thank you for showing me the way. Happy birthday, big brother.",
+ "You went first, so I didn't have to guess. Thank you for every lesson and every warning. Happy birthday!",
+ "Big brother, you set the bar high and I've been trying to reach it ever since. Happy birthday!",
+ "Thank you for being my protector, even when I didn't need one. Happy birthday!",
+ "Every success I've had has a little bit of your advice in it. Happy birthday, bhaiya.",
+ ]),
+ ("For a younger brother","",[
+ "Happy birthday to the kid who followed me everywhere and grew up to be someone I admire.",
+ "I'm so proud of the man you're becoming. Happy birthday, little brother!",
+ "You've always been my favorite annoying person. Happy birthday!",
+ "Whatever you decide to do this year, I've got your back. Happy birthday, champ!",
+ "You may be younger, but you've taught me more than you know. Happy birthday!",
+ ]),
+ ("Funny birthday wishes for a brother","",[
+ "Happy birthday! You've aged well. Like milk left out in the sun, but still.",
+ "Another year, another reason for me to remind you that I'm still the favorite.",
+ "Happy birthday to my brother, my first friend and my longest-running rival.",
+ "Congratulations on a whole new year of pretending to be taller than me.",
+ "You're getting older, but your jokes aren't getting any better. Happy birthday!",
+ ]),
+ ("Short captions for a brother's birthday","",[
+ "Brother, friend, legend. Happy birthday!",
+ "Happy birthday to my partner in everything.",
+ "Cheers to the best brother ever!",
+ ]),
+ ],
+ tips=["Mention a childhood memory; siblings have the best ones.","Use his nickname if you have one, and let the tone be yours.","If you're far apart, record a short voice note; it beats a text.","Pair it with a photo from when you were kids."],
+ related=["birthday-wishes-for-sister","birthday-wishes-for-father","funny-birthday-wishes"])
+
+W["birthday-wishes-for-sister"] = dict(
+ label="Sister", title="Birthday Wishes for a Sister: 28 Loving, Funny & Short Messages",
+ meta="Birthday Wishes for Sister: 28 Loving & Funny Messages",
+ desc="28 birthday wishes for a sister: loving messages for big and little sisters, funny lines and captions, plus a card-ready longer note.",
+ intro=["A sister can be a best friend, a rival, a confidante and the keeper of every embarrassing story from your childhood, sometimes all in one afternoon. Her birthday message should sound like the two of you, so use these as starting points and add one thing only a sister would know.",
+        "Whether she's older, younger or your twin, you'll find lines here that fit. Mix and match them into a note she'll actually save."],
+ sections=[
+ ("Loving birthday wishes for a sister","",[
+ "Happy birthday to my sister, my first friend and my forever confidante. I'm so lucky to have you.",
+ "You understand me without needing a single word. Thank you for that. Happy birthday!",
+ "No matter how much we grow up, you'll always be the person I run to first. Happy birthday, sis.",
+ "May your day be filled with the same warmth you bring to everyone around you.",
+ "Thank you for being my shoulder, my cheerleader and my honest mirror. I love you.",
+ "I hope this year gives you everything you've been quietly hoping for.",
+ "Life with you has been a gift. Here's to many more years of laughing at nothing.",
+ "You are the best part of every family photo. Happy birthday!",
+ ]),
+ ("For a big sister","",[
+ "You've always shown me how to be brave. Thank you for leading the way. Happy birthday, didi.",
+ "Big sister, you're my role model, my protector and my second mom. Happy birthday!",
+ "Thanks for always having the answers, even the ones I didn't ask for. Happy birthday!",
+ "Everything I know about being strong, I learned from watching you.",
+ "I hope you feel as loved today as you've made me feel my whole life.",
+ ]),
+ ("For a little sister","",[
+ "You'll always be my baby sister, even when you're all grown up. Happy birthday!",
+ "Watching you grow has been one of my greatest joys. Happy birthday, little one.",
+ "I'm so proud of you. Never stop being yourself. Happy birthday!",
+ "You may be younger, but you're wiser than me in so many ways. Happy birthday!",
+ "Happy birthday to the little sister who stole my clothes and my heart.",
+ ]),
+ ("Funny birthday wishes for a sister","",[
+ "Happy birthday! I'd give you my best clothes as a gift, but you already took them.",
+ "We've fought over everything, but I'd still fight anyone who bothers you. Happy birthday!",
+ "Another year older, and you still haven't returned my charger. Happy birthday!",
+ "Sisters don't share clothes, they share crimes. Happy birthday, partner!",
+ ]),
+ ("A longer note for a sister","",[
+ "Dear [name], I was thinking about all the little things we've shared: secrets, snacks, bad advice and long phone calls. You are a big part of who I am. I hope your birthday is full of everything that makes you smile. I love you more than I show. Happy birthday!",
+ "To my sister, whose laughter I'd know anywhere: thank you for being my person through every chapter. I can't wait for the next one. Happy birthday!",
+ ]),
+ ],
+ tips=["Mention a shared childhood memory.","Be honest about something she taught you.","Keep jokes affectionate, never about appearance.","Send it as a voice note if you can't be together."],
+ related=["birthday-wishes-for-brother","birthday-wishes-for-mother","birthday-wishes-for-best-friend"])
+
+W["birthday-wishes-for-mother"] = dict(
+ label="Mother", title="Birthday Wishes for a Mother: 30 Heartfelt Messages for Mom & Ammi",
+ meta="Birthday Wishes for Mother: 30 Heartfelt Messages",
+ desc="30 heartfelt birthday wishes for your mother: emotional thank-yous, short messages, prayers and notes from daughters and sons.",
+ intro=["No gift has ever matched what a mother gives, which is why the best birthday message for her is gratitude, said plainly. Be specific: mention the meals, the sleepless nights or the advice that finally made sense years later. She will remember the details more than the words around them.",
+        "Below are messages from sons and daughters, short and long, with a few prayers for health and happiness. Choose the one that sounds like you."],
+ sections=[
+ ("Heartfelt birthday wishes for mom","",[
+ "Happy birthday, Mom. Everything good in me began with you. Thank you for loving me before I'd done anything to deserve it.",
+ "You taught me kindness by being kind, strength by being strong. I hope today gives you back a little of what you've given us.",
+ "Thank you for every sacrifice you never mentioned. I see them now. I love you.",
+ "A mother's love is the first home we know. Thank you for being mine. Happy birthday!",
+ "You are the reason I believe in goodness. Happy birthday to the best mom in the world.",
+ "I'm sorry for all the times I forgot to say thank you. Today I'm saying it as loudly as I can. Happy birthday, Mom.",
+ "Your hugs are still the best medicine. Happy birthday!",
+ "Whatever I become, I'll always be the child you raised with love. Happy birthday, Ammi.",
+ ]),
+ ("Prayers and blessings for a mother","",[
+ "May Allah grant you health, peace and happiness for many more years. Happy birthday, Ammi.",
+ "Your duas have carried me through everything. May every one of them return to you as blessings. Happy birthday!",
+ "May your days be filled with joy and your heart with peace. You deserve nothing less. Happy birthday, Mom.",
+ "May you always be surrounded by the love you've given so generously. Happy birthday!",
+ "I pray for your health and happiness today and every day.",
+ ]),
+ ("Birthday wishes from a daughter","",[
+ "Mom, as I grow older, I realize how much of you is in me. Thank you. I hope I'm half as strong and half as kind. Happy birthday!",
+ "You're my first friend and my forever best friend. Happy birthday, Mom.",
+ "Thank you for teaching me to stand tall and be gentle at the same time.",
+ "Every time I look in the mirror, I hope to see a little more of you. Happy birthday!",
+ ]),
+ ("Birthday wishes from a son","",[
+ "Thank you for believing in me when I didn't. Happy birthday, Mom. I'll keep making you proud.",
+ "You worked so hard so I could have it easy. I won't forget it. Happy birthday, Ammi.",
+ "Everything I have, I owe to you. Happy birthday to the strongest woman I know.",
+ "No matter how old I get, I'll always be your little boy at heart. Happy birthday, Mom!",
+ ]),
+ ("Short birthday messages for a mother","",[
+ "Happy birthday, Mom. I love you!",
+ "To the heart of our home: happy birthday!",
+ "You're my hero, Mom. Have a wonderful day.",
+ "Love you more than words. Happy birthday!",
+ "Today is all about you, Mom.",
+ ]),
+ ("A note to put in her card","",[
+ "Dear Mom, thank you for the meals, the worry, the advice and the love. I know I don't say it enough, but I notice all of it. I hope this year brings you rest, joy and everything you deserve. Happy birthday. With all my love.",
+ ]),
+ ],
+ tips=["Be specific about what she did for you; specifics beat grand statements.","Add a wish for her health and rest, not just happiness.","Call her instead of just texting if you can. Hearing your voice means a lot.","A photo from your childhood together makes any message more emotional."],
+ related=["birthday-wishes-for-father","birthday-wishes-for-sister","islamic-birthday-wishes-and-duas"])
+
+W["birthday-wishes-for-father"] = dict(
+ label="Father", title="Birthday Wishes for a Father: 28 Heartfelt Messages for Dad & Abu",
+ meta="Birthday Wishes for Father: 28 Messages for Dad",
+ desc="28 birthday wishes for your father: heartfelt, funny and short messages for Dad and Abu, from sons and daughters.",
+ intro=["Fathers often say little but do a lot: the early mornings, the quiet sacrifices, the steady advice. A birthday message is a chance to tell him you noticed. You don't need fancy words; a sincere \"thank you for…\" is often what moves a dad most.",
+        "These messages cover heartfelt, funny and short styles, with versions from both sons and daughters."],
+ sections=[
+ ("Heartfelt birthday wishes for dad","",[
+ "Happy birthday, Dad. Thank you for being the steady ground I could always stand on.",
+ "You taught me that real strength is quiet and that hard work is never wasted. Happy birthday!",
+ "I understand now how much you gave up for us. Thank you. I love you, Dad.",
+ "Everything I've achieved has your fingerprints on it. Happy birthday to my first hero.",
+ "You don't say much, but you always show up. That's the greatest gift. Happy birthday!",
+ "Thank you for being my safety net and my example. Happy birthday, Abu.",
+ "May this year give you the rest and joy you've earned a hundred times over.",
+ "You've been the quiet strength behind every one of my steps. Happy birthday!",
+ ]),
+ ("From a daughter to her father","",[
+ "You'll always be my first hero and my favorite person to ask for advice. Happy birthday, Dad!",
+ "Thank you for teaching me that I can do anything. I believed you. Happy birthday!",
+ "Daddy's girl forever. Happy birthday to the best dad in the world.",
+ "Because of you, I know what unconditional love looks like. Happy birthday, Abu.",
+ ]),
+ ("From a son to his father","",[
+ "I hope to become half the man you are. Happy birthday, Dad.",
+ "Everything I know about being responsible, I learned from watching you. Happy birthday!",
+ "Thank you for teaching me to stand tall and keep going. Happy birthday, Abu.",
+ "Dad, you're my role model and my best friend. Have a great birthday!",
+ ]),
+ ("Funny birthday wishes for dad","",[
+ "Happy birthday, Dad! You're not old, you're vintage.",
+ "Thanks for teaching me everything I know, except how to fix the Wi-Fi.",
+ "Another year, another reason for you to tell the same stories. We love them anyway.",
+ "Dad, you're aging like fine wine: more expensive and slightly grumpy. Happy birthday!",
+ "You're my dad, so I'm legally required to say you're the best. Fortunately, it's true.",
+ ]),
+ ("Prayers for a father","",[
+ "May Allah grant you a long, healthy and peaceful life. Happy birthday, Abu jaan.",
+ "May every year bring you more happiness than the last. Happy birthday, Dad.",
+ "I pray you're always surrounded by the love you've given us. Happy birthday!",
+ ]),
+ ("Short birthday messages for dad","",[
+ "Happy birthday, Dad! Love you.",
+ "To my hero: happy birthday!",
+ "You're the best, Dad. Enjoy your day!",
+ ]),
+ ],
+ tips=["Say what he taught you; fathers love knowing their lessons stuck.","Don't wait for a perfect speech. A short honest note works.","Spend time with him if you can; presence beats presents.","Share an old photo of the two of you."],
+ related=["birthday-wishes-for-mother","birthday-wishes-for-brother","birthday-wishes-for-husband"])
