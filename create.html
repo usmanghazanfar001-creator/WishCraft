@@ -1863,6 +1863,21 @@
             <div class="chip" data-v="rounded">Rounded</div>
             <div class="chip" data-v="square">Square</div>
           </div>
+          <label>Photo frame</label>
+          <div class="chip-row" id="frameChips">
+            <div class="chip" data-v="template">Template</div>
+            <div class="chip" data-v="gold">Royal Gold</div>
+            <div class="chip" data-v="silver">Silver</div>
+            <div class="chip" data-v="rose">Rose</div>
+            <div class="chip" data-v="neon">Neon Glow</div>
+            <div class="chip" data-v="glass">Crystal</div>
+            <div class="chip" data-v="film">Film Classic</div>
+            <div class="chip" data-v="vintage">Vintage</div>
+            <div class="chip" data-v="diamond">Diamond</div>
+            <div class="chip" data-v="rainbow">Rainbow</div>
+            <div class="chip" data-v="emerald">Emerald</div>
+            <div class="chip" data-v="none">No frame</div>
+          </div>
           <label>Effects</label>
           <div class="chip-row" id="effectChips">
             <div class="chip" data-v="balloons">🎈 Balloons</div>
@@ -3044,10 +3059,25 @@
     /* ================= POSTER GENERATOR (unchanged) ================= */
     const templates = { gold: { name: 'Elegant Gold', bg: 'linear-gradient(160deg,#1a1400,#3a2b00 60%,#1a1400)', text: '#f4e4a6', accent: '#d4af37', heading: '#f4e4a6' }, black: { name: 'Luxury Black', bg: 'linear-gradient(160deg,#000000,#1c1c1c 60%,#000000)', text: '#ffffff', accent: '#c9a227', heading: '#ffffff' }, colorful: { name: 'Colorful', bg: 'linear-gradient(135deg,#ff5f6d,#ffc371,#845ec2)', text: '#ffffff', accent: '#ffffff', heading: '#ffffff' }, minimal: { name: 'Minimal White', bg: '#ffffff', text: '#1a1a1a', accent: '#c9a227', heading: '#1a1a1a' }, pink: { name: 'Romantic Pink', bg: 'linear-gradient(160deg,#ffdde1,#ee9ca7)', text: '#5a2436', accent: '#c14b6a', heading: '#8a2e46' } };
     const presets = { default: "Wishing you a very Happy Birthday filled with happiness, success, love and beautiful memories.", professional: "Wishing you a wonderful birthday filled with success, happiness and new opportunities.", friendly: "Happy Birthday! May your day be full of laughter, happiness and unforgettable memories.", heartfelt: "May this new year of your life bring you endless happiness, good health and beautiful moments.", short: "Happy Birthday! Wishing you happiness, success and endless smiles." };
-    let state = { template: 'gold', name: '', age: '', message: presets.default, sender: '', align: 'center', font: "Georgia, serif", shape: 'circle', effect: 'balloons', photo: null, zoom: 100 };
+    let state = { template: 'gold', name: '', age: '', message: presets.default, sender: '', align: 'center', font: "Georgia, serif", shape: 'circle', frame: 'template', effect: 'balloons', photo: null, zoom: 100 };
     function buildTplGrid() { const grid = $('tplGrid'); grid.innerHTML = ''; Object.entries(templates).forEach(([key, t]) => { const el = document.createElement('div'); el.className = 'tpl-card' + (key === state.template ? ' active' : ''); el.innerHTML = `<div class="swatch" style="background:${t.bg}"></div>${t.name}`; el.onclick = () => { state.template = key; buildTplGrid(); renderPoster(); }; grid.appendChild(el); }); }
+    /* Photo-frame styles for the poster (sizes are for the 1080 px poster; no backdrop-filter so PNG/GIF/video export match the preview). */
+    const posterFrames = {
+      template: { border: '', shadow: '' },
+      none: { border: '0 solid transparent', shadow: '0 14px 44px rgba(0,0,0,.4)' },
+      gold: { border: '0 solid transparent', shadow: '0 0 0 8px #d4af37, 0 0 0 15px rgba(212,175,55,.22), 0 16px 48px rgba(0,0,0,.45)' },
+      silver: { border: '0 solid transparent', shadow: '0 0 0 8px #dfe7ef, 0 0 0 15px rgba(255,255,255,.14), 0 16px 48px rgba(0,0,0,.45)' },
+      rose: { border: '0 solid transparent', shadow: '0 0 0 8px #e0648a, 0 0 0 16px rgba(224,100,138,.2), 0 16px 48px rgba(0,0,0,.45)' },
+      neon: { border: '0 solid transparent', shadow: '0 0 0 5px #67e8f9, 0 0 26px #67e8f9, 0 0 56px rgba(168,85,247,.7), 0 16px 48px rgba(0,0,0,.45)' },
+      glass: { border: '3px solid rgba(255,255,255,.75)', shadow: 'inset 0 0 0 5px rgba(255,255,255,.14), 0 0 0 11px rgba(255,255,255,.1), 0 16px 48px rgba(0,0,0,.45)' },
+      film: { border: '16px solid #171717', shadow: '0 0 0 3px #666, 0 16px 48px rgba(0,0,0,.55)' },
+      vintage: { border: '11px solid #8b6b3f', shadow: '0 0 0 5px #d7bd8a, 0 0 0 11px #4a321d, 0 16px 48px rgba(0,0,0,.5)' },
+      diamond: { border: '0 solid transparent', shadow: '0 0 0 6px #fff, 0 0 0 11px #9da8b6, 0 0 26px rgba(255,255,255,.65), 0 16px 48px rgba(0,0,0,.45)' },
+      rainbow: { border: '0 solid transparent', shadow: '0 0 0 6px #ff6b6b, 0 0 0 12px #ffd93d, 0 0 0 18px #6bcb77, 0 0 0 24px #4d96ff, 0 16px 48px rgba(0,0,0,.45)' },
+      emerald: { border: '0 solid transparent', shadow: '0 0 0 6px #10b981, 0 0 0 11px rgba(167,243,208,.9), 0 0 32px rgba(16,185,129,.7), 0 16px 48px rgba(0,0,0,.5)' }
+    };
     function setupPosterChips(id, key) { document.querySelectorAll(`#${id} .chip`).forEach(c => { if (c.dataset.v === state[key]) c.classList.add('active'); c.onclick = () => { state[key] = c.dataset.v; document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.remove('active')); c.classList.add('active'); renderPoster(); }; }); }
-    function renderPoster() { const t = templates[state.template]; const poster = $('poster'); poster.style.background = t.bg; poster.style.color = t.text; poster.style.fontFamily = state.font; poster.style.textAlign = state.align; poster.style.alignItems = state.align === 'left' ? 'flex-start' : 'center'; $('pHeading').style.color = t.heading; $('pName').textContent = (state.name || 'NAME').toUpperCase(); $('pName').style.color = t.text; $('pSender').textContent = state.sender || 'Sender Name'; $('pMessage').textContent = state.message; if (state.age) { $('pAge').style.display = 'block'; $('pAge').textContent = 'Turning ' + state.age; } else { $('pAge').style.display = 'none'; } const frame = $('photoFrame'); frame.style.borderRadius = state.shape === 'circle' ? '50%' : state.shape === 'rounded' ? '32px' : '4px'; frame.style.borderColor = t.accent; if (state.photo) { $('pPhoto').src = state.photo; $('pPhoto').style.display = 'block'; $('pPhoto').style.transform = `scale(${state.zoom / 100})`; $('pPhotoPlaceholder').style.display = 'none'; } else { $('pPhoto').style.display = 'none'; $('pPhotoPlaceholder').style.display = 'flex'; } const layer = $('balloonLayer'); layer.innerHTML = ''; if (state.effect === 'balloons') { const palette = [['#fff0a8','#d4af37','#7f5c12'],['#f4d4dc','#c96a86','#7f3047'],['#d7f3ff','#70c8ef','#286c9b']]; for (let i = 0; i < 10; i++) { const b = document.createElement('div'); const c = palette[i % palette.length]; b.className = 'balloon-real'; b.style.left = (i * 10 + Math.random() * 5) + '%'; b.style.setProperty('--size', (42 + Math.random() * 22) + 'px'); b.style.setProperty('--balloon-hi', c[0]); b.style.setProperty('--balloon-mid', c[1]); b.style.setProperty('--balloon-low', c[2]); b.style.setProperty('--dur', (6 + Math.random() * 4) + 's'); b.style.setProperty('--delay', (Math.random() * 2) + 's'); b.style.setProperty('--sway', (12 + Math.random() * 22) * (Math.random() > .5 ? 1 : -1) + 'px'); layer.appendChild(b); } } scalePoster(); }
+    function renderPoster() { const t = templates[state.template]; const poster = $('poster'); poster.style.background = t.bg; poster.style.color = t.text; poster.style.fontFamily = state.font; poster.style.textAlign = state.align; poster.style.alignItems = state.align === 'left' ? 'flex-start' : 'center'; $('pHeading').style.color = t.heading; $('pName').textContent = (state.name || 'NAME').toUpperCase(); $('pName').style.color = t.text; $('pSender').textContent = state.sender || 'Sender Name'; $('pMessage').textContent = state.message; if (state.age) { $('pAge').style.display = 'block'; $('pAge').textContent = 'Turning ' + state.age; } else { $('pAge').style.display = 'none'; } const frame = $('photoFrame'); frame.style.borderRadius = state.shape === 'circle' ? '50%' : state.shape === 'rounded' ? '32px' : '4px'; frame.style.borderColor = t.accent; const pf = posterFrames[state.frame] || posterFrames.template; frame.style.border = pf.border || ''; frame.style.borderColor = pf.border ? '' : t.accent; frame.style.boxShadow = pf.shadow || ''; if (state.photo) { $('pPhoto').src = state.photo; $('pPhoto').style.display = 'block'; $('pPhoto').style.transform = `scale(${state.zoom / 100})`; $('pPhotoPlaceholder').style.display = 'none'; } else { $('pPhoto').style.display = 'none'; $('pPhotoPlaceholder').style.display = 'flex'; } const layer = $('balloonLayer'); layer.innerHTML = ''; if (state.effect === 'balloons') { const palette = [['#fff0a8','#d4af37','#7f5c12'],['#f4d4dc','#c96a86','#7f3047'],['#d7f3ff','#70c8ef','#286c9b']]; for (let i = 0; i < 10; i++) { const b = document.createElement('div'); const c = palette[i % palette.length]; b.className = 'balloon-real'; b.style.left = (i * 10 + Math.random() * 5) + '%'; b.style.setProperty('--size', (42 + Math.random() * 22) + 'px'); b.style.setProperty('--balloon-hi', c[0]); b.style.setProperty('--balloon-mid', c[1]); b.style.setProperty('--balloon-low', c[2]); b.style.setProperty('--dur', (6 + Math.random() * 4) + 's'); b.style.setProperty('--delay', (Math.random() * 2) + 's'); b.style.setProperty('--sway', (12 + Math.random() * 22) * (Math.random() > .5 ? 1 : -1) + 'px'); layer.appendChild(b); } } scalePoster(); }
     function scalePoster() { const outer = $('posterOuter'); const scale = outer.clientWidth / 1080; $('poster').style.transform = `scale(${scale})`; }
     window.addEventListener('resize', scalePoster);
     $('nameInput').oninput = e => { state.name = e.target.value; renderPoster(); };
@@ -3057,7 +3087,7 @@
     $('messageInput').value = state.message;
     $('msgPreset').onchange = e => { const v = e.target.value; if (v !== 'custom') { state.message = presets[v]; $('messageInput').value = state.message; renderPoster(); } };
     $('fontSelect').onchange = e => { state.font = e.target.value; renderPoster(); };
-    setupPosterChips('alignChips', 'align'); setupPosterChips('shapeChips', 'shape'); setupPosterChips('effectChips', 'effect');
+    setupPosterChips('alignChips', 'align'); setupPosterChips('shapeChips', 'shape'); setupPosterChips('frameChips', 'frame'); setupPosterChips('effectChips', 'effect');
     buildTplGrid();
     const photoInput = $('photoInput'), uploadBox = $('uploadBox');
     function handleFile(file) { if (!file || !file.type.startsWith('image/')) return; const reader = new FileReader(); reader.onload = ev => { state.photo = ev.target.result; $('photoControls').style.display = 'block'; $('uploadHint').innerHTML = '✅ Photo added — click to change'; renderPoster(); }; reader.readAsDataURL(file); }
