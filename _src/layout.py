@@ -6,7 +6,7 @@ ADSENSE = "ca-pub-7402751690588915"
 CONTACT_EMAIL = os.environ.get("WISHCRAFT_CONTACT_EMAIL", "YOUR-EMAIL@example.com")
 TODAY = "2026-10-23"
 
-NAV = [("/", "Home"), ("/wishes", "Wishes"), ("/guides", "Guides"), ("/faq", "FAQ"), ("/about", "About")]
+NAV = [("/", "Home"), ("/birthday-templates", "Templates"), ("/wishes", "Wishes"), ("/guides", "Guides"), ("/about", "About")]
 
 CSS = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "site.css"), encoding="utf8").read()
 
@@ -57,11 +57,17 @@ if(document.readyState==='complete')later();else addEventListener('load',later);
 <meta property="og:url" content="{url}">
 <meta property="og:image" content="{SITE}/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{esc(title)}">
+<meta name="twitter:description" content="{esc(desc)}">
+<meta name="twitter:image" content="{SITE}/og-image.png">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <style>{CSS}</style>
 {"<link rel=\"preconnect\" href=\"https://pagead2.googlesyndication.com\" crossorigin>" if ads else ""}
-{jsonld(ld)}{adsense}</head>
+{jsonld(ld)}<script>if(/\.vercel\.app$/.test(location.hostname)&&location.hostname!=="{SITE.split("//")[1]}"){{var m=document.createElement("meta");m.name="robots";m.content="noindex,nofollow";document.head.appendChild(m);}}</script>
+{adsense}<script defer src="/assets/analytics.js"></script></head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="site"><div class="wrap">
@@ -75,7 +81,7 @@ if(document.readyState==='complete')later();else addEventListener('load',later);
 <footer class="site"><div class="wrap">
 <div class="cols">
 <div><p class="fh">✦ WishCraft</p><p>A free birthday wish and poster maker. Add photos, music and a message, then share one private link.</p></div>
-<div><p class="fh">Birthday tools</p><ul><li><a href="/birthday-surprise-maker">Birthday surprise maker</a></li><li><a href="/birthday-poster-maker">Birthday poster maker</a></li><li><a href="/birthday-gif-maker">Birthday GIF maker</a></li><li><a href="/birthday-video-maker">Birthday video maker</a></li><li><a href="/birthday-card-maker">Digital card maker</a></li><li><a href="/birthday-wishes-generator">Wishes generator</a></li></ul></div>
+<div><p class="fh">Birthday tools</p><ul><li><a href="/birthday-surprise-maker">Birthday surprise maker</a></li><li><a href="/birthday-poster-maker">Birthday poster maker</a></li><li><a href="/birthday-gif-maker">Birthday GIF maker</a></li><li><a href="/birthday-video-maker">Birthday video maker</a></li><li><a href="/birthday-card-maker">Digital card maker</a></li><li><a href="/birthday-templates">Templates</a></li><li><a href="/birthday-wishes-generator">Wishes generator</a></li></ul></div>
 <div><p class="fh">Birthday wishes</p><ul><li><a href="/wishes/birthday-wishes-for-friend">For a friend</a></li><li><a href="/wishes/birthday-wishes-for-mother">For a mother</a></li><li><a href="/wishes/birthday-wishes-in-urdu">In Urdu</a></li><li><a href="/wishes/funny-birthday-wishes">Funny wishes</a></li><li><a href="/wishes">All wishes</a></li></ul></div>
 <div><p class="fh">Guides</p><ul><li><a href="/guides/how-to-write-a-heartfelt-birthday-message">Write a heartfelt message</a></li><li><a href="/guides/birthday-photo-tips-for-memory-stories">Photo tips</a></li><li><a href="/guides">All guides</a></li></ul></div>
 <div><p class="fh">Company</p><ul><li><a href="/about">About</a></li><li><a href="/faq">FAQ</a></li><li><a href="/contact">Contact</a></li><li><a href="/privacy">Privacy policy</a></li><li><a href="/terms">Terms of use</a></li></ul></div>

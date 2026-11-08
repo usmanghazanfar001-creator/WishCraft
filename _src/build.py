@@ -6,18 +6,41 @@ sys.path.insert(0, os.path.dirname(__file__))
 from layout import *
 from guides_a import G as GA
 from guides_b import G as GB
+from guides_d import G as GD
+from guides_c import G as GC
 from wishes_a import W as WA
 from wishes_b import W as WB
 from wishes_c import W as WC
 from tools import T as TOOLS
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GUIDES = {}; GUIDES.update(GA); GUIDES.update(GB)
+GUIDES = {}; GUIDES.update(GA); GUIDES.update(GB); GUIDES.update(GC); GUIDES.update(GD)
 ORDER = ["how-to-create-a-birthday-surprise-link", "birthday-wishes-messages", "how-to-write-a-heartfelt-birthday-message",
          "birthday-photo-tips-for-memory-stories", "birthday-poster-design-guide", "long-distance-birthday-surprise-ideas",
-         "share-birthday-wishes-on-whatsapp"]
+         "share-birthday-wishes-on-whatsapp", "25-birthday-surprise-ideas", "how-to-make-a-birthday-website-for-someone",
+         "how-to-make-a-personalized-birthday-card-online",
+         "how-to-create-a-birthday-video-with-photos-and-music", "best-ways-to-create-an-animated-birthday-gif"]
 assert set(ORDER) == set(GUIDES)
 urls = []
+
+import json as _json
+IMG_SIZES = _json.load(open(os.path.join(ROOT, "_src", "img_sizes.json")))
+def img(name, alt, eager=False):
+    w, h = IMG_SIZES[name]
+    return '<img src="/assets/img/%s" alt="%s" width="%d" height="%d" loading="%s" decoding="async" style="border-radius:12px;width:100%%;height:auto">' % (name, esc(alt), w, h, "eager" if eager else "lazy")
+def poster_img(slug, label): return img("personalized-%s-birthday-poster.webp" % slug, "%s birthday poster template with a sample name and message" % label)
+def wish_img(slug, label): return img("birthday-wish-%s-theme-preview.webp" % slug, "%s theme preview of an animated birthday wish with a sample name" % label)
+POSTERS = [("elegant-gold","Elegant Gold"),("luxury-black","Luxury Black"),("colorful","Colorful"),("minimal-white","Minimal White"),("romantic-pink","Romantic Pink"),("royal-blue","Royal Blue"),("sunset-glow","Sunset Glow"),("emerald","Emerald"),("lavender","Lavender")]
+WTHEMES = [("royal-gold","Royal Gold"),("midnight-luxury","Midnight Luxury"),("rose-romance","Rose Romance"),("blue-celebration","Blue Celebration"),("golden-memories","Golden Memories"),("pastel-birthday","Pastel Birthday"),("black-gold","Black & Gold"),("dreamy-celebration","Dreamy Celebration"),("sapphire-night","Sapphire Night"),("emerald-garden","Emerald Garden"),("lavender-dream","Lavender Dream"),("sunset-glow","Sunset Glow"),("ocean-breeze","Ocean Breeze"),("cherry-blossom","Cherry Blossom"),("royal-purple","Royal Purple"),("crimson-velvet","Crimson Velvet"),("neon-party","Neon Party"),("rose-gold","Rose Gold"),("galaxy","Galaxy"),("tropical-sunrise","Tropical Sunrise"),("mint-fresh","Mint Fresh"),("cloud-white","Cloud White")]
+def strip(items, cols=3):
+    return '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));max-width:900px;margin:24px auto 0">%s</div>' % "".join('<figure style="margin:0">%s<figcaption class="meta" style="margin:6px 0 0;text-align:center;font-size:.8rem">%s</figcaption></figure>' % (i, c) for i, c in items)
+TOOL_IMGS = {
+ "birthday-poster-maker": lambda: strip([(poster_img(s_, l), l) for s_, l in POSTERS[:4]]),
+ "birthday-gif-maker": lambda: strip([(poster_img(s_, l), l) for s_, l in [POSTERS[2], POSTERS[4], POSTERS[6]]]),
+ "birthday-video-maker": lambda: strip([(poster_img("sunset-glow", "Sunset Glow"), "Poster video"), (wish_img("royal-gold", "Royal Gold"), "Photo story wish"), (wish_img("galaxy", "Galaxy"), "Galaxy theme")]),
+ "birthday-surprise-maker": lambda: strip([(wish_img(s_, l), l) for s_, l in [WTHEMES[0], WTHEMES[2], WTHEMES[18], WTHEMES[13]]]),
+ "birthday-card-maker": lambda: strip([(poster_img("romantic-pink", "Romantic Pink"), "Card image"), (wish_img("rose-gold", "Rose Gold"), "Animated ecard"), (poster_img("minimal-white", "Minimal White"), "Minimal card")]),
+}
 
 def write(path, content, sitemap=True, prio="0.6"):
     fn = os.path.join(ROOT, path.strip("/") + ".html") if path != "/" else os.path.join(ROOT, "index.html")
@@ -37,13 +60,13 @@ for slug, g in GUIDES.items():
     body = f'''<article class="narrow">
 <p class="kicker">{esc(g["cat"])} · {g["read"]}</p>
 <h1>{esc(g["title"])}</h1>
-<p class="meta">By WishCraft · Updated October 23, 2026</p>
+<p class="meta">By WishCraft · Updated {g.get("updated", "October 23, 2026")}</p>
 {g["body"]()}
 {related(slug)}
 </article>'''
     write(path, page(path, g["meta_title"], g["desc"], body,
         trail=[("/", "Home"), ("/guides", "Guides"), (path, g["title"])],
-        schema=[article_schema(path, g["title"], g["desc"])], og_type="article", current="/guides"), prio="0.8")
+        schema=[article_schema(path, g["title"], g["desc"])] + ([faq_schema(g["faq"])] if g.get("faq") else []), og_type="article", current="/guides"), prio="0.8")
 
 # ---------------- guides index
 cards = "".join('<a class="card" href="/guides/%s"><p class="kicker">%s</p><h2>%s</h2><p>%s</p></a>' % (s, esc(GUIDES[s]["cat"]), esc(GUIDES[s]["title"]), esc(GUIDES[s]["desc"])) for s in ORDER)
@@ -274,6 +297,7 @@ for slug, d in TOOLS.items():
 <h1>{esc(d["h1"])}</h1>
 <p class="lead">{esc(d["lead"])}</p>
 <div class="cta-row"><a class="btn" href="{d["cta"]}">{esc(d["cta_text"])}</a></div>
+{TOOL_IMGS[slug]() if slug in TOOL_IMGS else ""}
 </div></section>
 <article class="narrow">
 {secs}
@@ -365,8 +389,54 @@ write("/birthday-wishes-generator", page("/birthday-wishes-generator", "Birthday
     schema=[faq_schema(gen_faq), {"@context": "https://schema.org", "@type": "WebApplication", "name": "WishCraft Birthday Wishes Generator", "url": SITE + "/birthday-wishes-generator",
             "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}]), prio="0.9")
 
+
+# ---------------- Templates page
+pg_ = "".join('<figure style="margin:0">%s<figcaption style="text-align:center;margin-top:6px"><strong>%s</strong></figcaption></figure>' % (poster_img(s_, l), l) for s_, l in POSTERS)
+wg_ = "".join('<figure style="margin:0">%s<figcaption style="text-align:center;margin-top:6px;font-size:.9rem">%s</figcaption></figure>' % (wish_img(s_, l), esc(l)) for s_, l in WTHEMES)
+tfaq = [("How many birthday templates does WishCraft have?", "Nine poster templates and 22 themes for animated birthday wishes, plus frame styles, photo shapes, fonts and animation effects you can combine."),
+        ("Are the templates free?", "Yes. All templates and themes are free to use, with no account required."),
+        ("Can I change the colors or fonts?", "You can choose between templates, three font styles, text alignment and photo shapes. Colors are set by the template."),
+        ("Do the previews show real birthdays?", "No. The previews use a sample name and placeholder cake image so you can see each style. Your photo and text replace them.")]
+body = f'''<section class="hero"><div class="wrap">
+<p class="kicker">Real previews · Free · No sign-up</p>
+<h1>Birthday Card, Poster &amp; Wish Templates</h1>
+<p class="lead">Browse every look available in WishCraft. Each image below is a screenshot of the real tool with a sample name, so what you see is what you get.</p>
+<div class="cta-row"><a class="btn" href="/create?tab=poster">Use a poster template</a><a class="btn ghost" href="/create">Use a wish theme</a></div>
+</div></section>
+<div class="wrap">
+<h2 id="posters">Birthday poster templates (9)</h2>
+<p>Poster templates style the 1080 × 1350 image, video and GIF exports. Choose a template in the Poster Generator, then pick a photo shape, font and effect. Learn more on the <a href="/birthday-poster-maker">birthday poster maker</a> page.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">{pg_}</div>
+<h2 id="wishes">Animated birthday wish themes (22)</h2>
+<p>Themes set the colors for the animated wish experience: gift box, cake ceremony, photo story and message. Each one works with any photo, song and effect. See how it works on the <a href="/birthday-surprise-maker">birthday surprise maker</a> page.</p>
+<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">{wg_}</div>
+</div>
+<div class="narrow">
+<h2>How to choose a template</h2>
+<ul>
+<li><strong>Parents and elders:</strong> Elegant Gold, Royal Gold or Midnight Luxury feel classic and respectful.</li>
+<li><strong>Partners:</strong> Rose Romance, Romantic Pink or Rose Gold feel warm and personal.</li>
+<li><strong>Friends:</strong> Colorful, Neon Party or Tropical Sunrise add energy.</li>
+<li><strong>Colleagues:</strong> Minimal White or Cloud White keep things clean and professional.</li>
+</ul>
+<p>Contrast matters more than color: pick a template where text is easy to read. For layout advice read our <a href="/guides/birthday-poster-design-guide">poster design guide</a>.</p>
+<h2>Frequently asked questions</h2>
+{"".join("<details><summary>%s</summary><p>%s</p></details>" % (esc(q), esc(a)) for q, a in tfaq)}
+</div>'''
+write("/birthday-templates", page("/birthday-templates", "Birthday Card, Poster & Wish Templates | WishCraft",
+    "Browse 9 poster templates and 22 animated birthday wish themes with real previews. Free, no sign-up, ready to personalize with your photo and message.",
+    body, trail=[("/", "Home"), ("/birthday-templates", "Templates")], current="/birthday-templates", schema=[faq_schema(tfaq),
+      {"@context": "https://schema.org", "@type": "CollectionPage", "name": "WishCraft birthday templates", "url": SITE + "/birthday-templates"}]), prio="0.9")
+
 # ---------------- Landing page
-HOME_FAQ = FAQ[:5]
+HOME_FAQ = [
+ ("Is WishCraft free?", "Yes. You can create birthday wishes and posters without paying or signing up."),
+ ("How do I create a birthday surprise?", "Open the creator, enter the name, add photos, a message and optional music, preview it, then generate a link to send. The tutorial on this site walks through every step."),
+ ("Can I add my own photos?", "Yes. Add one main photo and up to ten memory photos. They are compressed automatically so the wish loads quickly."),
+ ("Can I add background music?", "Yes. Upload a song up to 25 MB and choose the part that plays, or use the built-in music-box Happy Birthday melody."),
+ ("Can I download a birthday video?", "You can download a 6-second looping video of an animated poster, or a GIF. The photo slideshow with music plays from a shareable link rather than a downloadable video file."),
+ ("Can I share my birthday creation on WhatsApp?", "Yes. After you generate a link, the WhatsApp button opens a ready-to-send message. Posters can be downloaded and sent as images."),
+]
 feat = [
  ("🎁", "Gift box &amp; cake ceremony", "A cinematic opening: tap to open a gift, make a wish, then cut the cake or blow out the candles."),
  ("📸", "Photo memory story", "Add up to ten photos and choose fade, zoom, slide or cinematic transitions for a slideshow with feeling."),
@@ -395,8 +465,13 @@ body = f'''<script>
 <p class="kicker">Free · No sign-up · Works on any phone</p>
 <h1>Free Online Birthday Creator: Turn a Wish Into a Memory They Keep</h1>
 <p class="lead">Create an animated birthday surprise with photos, music, a cake ceremony and a heartfelt message, then send it as one private link. Or design a birthday poster in minutes.</p>
-<div class="cta-row"><a class="btn" href="/create">Create a birthday wish</a><a class="btn ghost" href="/guides/how-to-create-a-birthday-surprise-link">See how it works</a></div>
+<div class="cta-row"><a class="btn" href="/create">Create Birthday Wish</a><a class="btn" href="/create?tab=poster">Make Birthday Poster</a><a class="btn" href="/birthday-video-maker">Create Birthday Video</a><a class="btn ghost" href="/birthday-templates">Explore Templates</a></div>
 </div></section>
+
+<div class="narrow"><section>
+<h2>One free place to create birthday wishes, posters, videos and surprises</h2>
+<p>WishCraft lets you <a href="/birthday-surprise-maker">build an interactive birthday surprise</a> with photos, music and a cake ceremony, <a href="/birthday-poster-maker">design a birthday poster</a> with a name and photo, <a href="/birthday-video-maker">make a short birthday video</a>, <a href="/birthday-gif-maker">generate an animated birthday GIF</a> and send a <a href="/birthday-card-maker">digital birthday card</a> by link. Need the words? Try the <a href="/birthday-wishes-generator">birthday wishes generator</a> or browse <a href="/birthday-templates">templates</a>.</p>
+</section></div>
 
 <div class="wrap"><section>
 <h2>What you can make with WishCraft</h2>
@@ -445,12 +520,12 @@ body = f'''<script>
 <p><a href="/faq">Read the full FAQ →</a></p></section></div>'''
 home_schema = [
  {"@context": "https://schema.org", "@type": "WebSite", "name": NAME, "url": SITE + "/"},
- {"@context": "https://schema.org", "@type": "WebApplication", "name": NAME, "url": SITE + "/create", "applicationCategory": "MultimediaApplication",
+ {"@context": "https://schema.org", "@type": ["WebApplication", "SoftwareApplication"], "name": NAME, "url": SITE + "/create", "applicationCategory": "MultimediaApplication",
   "operatingSystem": "Any (web browser)", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
   "description": "Free web app for creating animated birthday wishes with photos, music and a shareable link, and for designing birthday posters, videos and GIFs."},
  faq_schema(HOME_FAQ)]
-write("/", page("/", "Free Online Birthday Creator: Wishes, Posters & Cards | WishCraft",
-    "Create a free animated birthday wish with photos, music and a cake ceremony and share it with one link. Or design a birthday poster, video or GIF. No sign-up.",
+write("/", page("/", "Free Birthday Card, Video & Poster Maker Online | WishCraft",
+    "Create personalized birthday cards, animated videos, posters, GIFs and interactive birthday surprises online for free. Add photos, music, messages and beautiful effects with WishCraft.",
     body, schema=home_schema, current="/"), prio="1.0")
 
 # ---------------- 404

@@ -17,12 +17,23 @@
   <meta property="og:url" content="https://wishcrafting.vercel.app/create">
   <meta property="og:image" content="https://wishcrafting.vercel.app/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Free Birthday Wish & Poster Maker | WishCraft">
+  <meta name="twitter:description" content="Build an animated birthday surprise with photos, music and a cake ceremony, then share it with one link.">
+  <meta name="twitter:image" content="https://wishcrafting.vercel.app/og-image.png">
   <link rel="icon" type="image/png" href="/favicon.png">
-  <link rel="apple-touch-icon" href="/favicon.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <script>
+    /* Preview/staging deployments must not be indexed. */
+    if (/\.vercel\.app$/.test(location.hostname) && location.hostname !== 'wishcrafting.vercel.app') { var r0 = document.createElement('meta'); r0.name = 'robots'; r0.content = 'noindex,nofollow'; document.head.appendChild(r0); }
     /* A shared wish (?w=… or old #wish= links) is private recipient content: keep it out of search and never show ads there. */
     (function () {
+      if (location.hostname !== 'wishcrafting.vercel.app' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        /* Preview / staging deployments must never be indexed. If you add a custom domain, add it above and in _src/layout.py. */
+        var r = document.querySelector('meta[name="robots"]'); if (r) r.content = 'noindex,nofollow';
+      }
       if (/[?&]w=/.test(location.search) || /^#wish(url)?=/.test(location.hash)) {
         var m = document.querySelector('meta[name="robots"]'); if (m) m.content = 'noindex,nofollow';
         var c = document.querySelector('link[rel="canonical"]'); if (c) c.remove();
@@ -2130,7 +2141,8 @@
     /* ---- direct browser -> Vercel Blob upload (no function size limit) ---- */
     let _blobClient = null;
     async function getBlobClient() {
-      if (!_blobClient) _blobClient = import('https://esm.sh/@vercel/blob@2.8.0/client');
+      /* Self-hosted copy first (no third-party CDN needed); esm.sh only as a fallback. */
+      if (!_blobClient) _blobClient = import('/assets/vendor/blob-client.js').catch(() => import('https://esm.sh/@vercel/blob@2.8.0/client'));
       return _blobClient;
     }
     function safeFileName(n, fallback) {
@@ -2154,9 +2166,8 @@
       } catch (directErr) {
         console.warn('Direct upload failed, trying fallback:', directErr);
         if (fileOrBlob.size > 4 * 1024 * 1024) {
-          throw new Error(kind === 'audio'
-            ? 'Song upload failed. Check that the Blob store is connected and redeploy.'
-            : 'Photo upload failed. Check that the Blob store is connected and redeploy.');
+          const why = String((directErr && directErr.message) || directErr || '').slice(0, 140);
+          throw new Error((kind === 'audio' ? 'Song upload failed' : 'Photo upload failed') + (why ? ' (' + why + ')' : '') + '. Check your connection, and that the Blob store is connected, then try again.');
         }
         const res = await fetch(kind === 'audio' ? '/api/upload-audio' : '/api/upload-image', {
           method: 'POST',
@@ -2315,7 +2326,7 @@
           wish.audio.uploading = false;
           wish.audio.shareUrl = '';
           $('audioHint').textContent = '⚠ Song preview only';
-          $('audioSizeWarn').textContent = '⚠ The song plays in your preview, but could not be uploaded for sharing. Check that the Blob store is connected, redeploy and try again.';
+          $('audioSizeWarn').textContent = '⚠ The song plays in your preview, but could not be uploaded for sharing. ' + (err && err.message ? err.message : 'Check that the Blob store is connected, redeploy and try again.');
           showToast(err.message || 'Song upload failed');
           updateShareSizeWarning();
         }
@@ -3661,6 +3672,21 @@
     /* /create?tab=poster opens the poster generator directly (used by the tool landing pages). */
     (function () { try { if (new URLSearchParams(location.search).get('tab') === 'poster' && !/[?&]w=/.test(location.search)) { var t = document.querySelector('.mode-tab[data-mode="poster"]'); if (t) t.click(); } } catch (e) { } })();
   </script>
+  <script>
+    /* Analytics events (no-ops until an ID is set in /assets/analytics.js). Fixed event names only; never names, messages, photos or links. */
+    (function () {
+      function t(n, p) { try { window.wcTrack && window.wcTrack(n, p); } catch (e) { } }
+      var map = { wGenerateBtn: ['wish_create'], wPreviewBtn: ['wish_preview'], downloadBtn: ['poster_download'], videoBtn: ['video_export'], gifBtn: ['gif_export'],
+        wShareWA: ['share_whatsapp', { source: 'creator' }], waBtn: ['share_whatsapp', { source: 'poster' }] };
+      document.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('button');
+        if (b && map[b.id]) { t(map[b.id][0], map[b.id][1]); return; }
+        var c = e.target.closest && e.target.closest('#tplGrid > *, #wThemeGrid > *');
+        if (c) { var nm = (c.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40); t('template_select', { kind: c.parentElement.id === 'tplGrid' ? 'poster' : 'wish', template_name: nm }); }
+      }, true);
+    })();
+  </script>
+  <script defer src="/assets/analytics.js"></script>
 </body>
 
 </html>
